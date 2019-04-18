@@ -125,7 +125,7 @@ public class ProcessFailureCancelingITCase extends TestLogger {
 
 		final SessionDispatcherResourceManagerComponentFactory resourceManagerComponentFactory = new SessionDispatcherResourceManagerComponentFactory(
 			StandaloneResourceManagerFactory.INSTANCE);
-		DispatcherResourceManagerComponent<?> dispatcherResourceManagerComponent = null;
+		DispatcherResourceManagerComponent dispatcherResourceManagerComponent = null;
 
 		final ScheduledExecutorService ioExecutor = TestingUtils.defaultExecutor();
 		final HighAvailabilityServices haServices = HighAvailabilityServicesUtils.createHighAvailabilityServices(

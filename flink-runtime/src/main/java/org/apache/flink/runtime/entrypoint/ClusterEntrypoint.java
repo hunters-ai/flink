@@ -116,7 +116,7 @@ public abstract class ClusterEntrypoint implements AutoCloseableAsync, FatalErro
 	private final AtomicBoolean isShutDown = new AtomicBoolean(false);
 
 	@GuardedBy("lock")
-	private DispatcherResourceManagerComponent<?> clusterComponent;
+	private DispatcherResourceManagerComponent clusterComponent;
 
 	@GuardedBy("lock")
 	private MetricRegistryImpl metricRegistry;
@@ -205,7 +205,7 @@ public abstract class ClusterEntrypoint implements AutoCloseableAsync, FatalErro
 			configuration.setString(JobManagerOptions.ADDRESS, commonRpcService.getAddress());
 			configuration.setInteger(JobManagerOptions.PORT, commonRpcService.getPort());
 
-			final DispatcherResourceManagerComponentFactory<?> dispatcherResourceManagerComponentFactory = createDispatcherResourceManagerComponentFactory(configuration);
+			final DispatcherResourceManagerComponentFactory dispatcherResourceManagerComponentFactory = createDispatcherResourceManagerComponentFactory(configuration);
 
 			clusterComponent = dispatcherResourceManagerComponentFactory.create(
 				configuration,
@@ -460,7 +460,7 @@ public abstract class ClusterEntrypoint implements AutoCloseableAsync, FatalErro
 	// Abstract methods
 	// --------------------------------------------------
 
-	protected abstract DispatcherResourceManagerComponentFactory<?> createDispatcherResourceManagerComponentFactory(Configuration configuration);
+	protected abstract DispatcherResourceManagerComponentFactory createDispatcherResourceManagerComponentFactory(Configuration configuration);
 
 	protected abstract ArchivedExecutionGraphStore createSerializableExecutionGraphStore(
 		Configuration configuration,

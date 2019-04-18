@@ -18,7 +18,7 @@
 
 package org.apache.flink.runtime.entrypoint.component;
 
-import org.apache.flink.runtime.dispatcher.Dispatcher;
+import org.apache.flink.runtime.dispatcher.DispatcherRunner;
 import org.apache.flink.runtime.leaderretrieval.LeaderRetrievalService;
 import org.apache.flink.runtime.metrics.groups.JobManagerMetricGroup;
 import org.apache.flink.runtime.resourcemanager.ResourceManager;
@@ -27,14 +27,14 @@ import org.apache.flink.runtime.webmonitor.WebMonitorEndpoint;
 /**
  * {@link DispatcherResourceManagerComponent} used by session clusters.
  */
-class SessionDispatcherResourceManagerComponent extends DispatcherResourceManagerComponent<Dispatcher> {
+class SessionDispatcherResourceManagerComponent extends DispatcherResourceManagerComponent {
 	SessionDispatcherResourceManagerComponent(
-			Dispatcher dispatcher,
+			DispatcherRunner dispatcherRunner,
 			ResourceManager<?> resourceManager,
 			LeaderRetrievalService dispatcherLeaderRetrievalService,
 			LeaderRetrievalService resourceManagerRetrievalService,
 			WebMonitorEndpoint<?> webMonitorEndpoint,
 			JobManagerMetricGroup jobManagerMetricGroup) {
-		super(dispatcher, resourceManager, dispatcherLeaderRetrievalService, resourceManagerRetrievalService, webMonitorEndpoint, jobManagerMetricGroup);
+		super(dispatcherRunner, resourceManager, dispatcherLeaderRetrievalService, resourceManagerRetrievalService, webMonitorEndpoint, jobManagerMetricGroup);
 	}
 }

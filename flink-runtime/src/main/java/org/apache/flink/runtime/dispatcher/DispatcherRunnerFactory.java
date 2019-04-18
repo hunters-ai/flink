@@ -20,22 +20,12 @@ package org.apache.flink.runtime.dispatcher;
 
 import org.apache.flink.runtime.rpc.RpcService;
 
-import javax.annotation.Nonnull;
-
 /**
- * {@link DispatcherFactory} which creates a {@link StandaloneDispatcher}.
+ * Factory interface for the {@link DispatcherRunner}.
+ *
+ * @param <T> type of the dispatcher runner being created
  */
-public enum SessionDispatcherFactory implements DispatcherFactory<StandaloneDispatcher> {
-	INSTANCE;
+public interface DispatcherRunnerFactory<T extends DispatcherRunner> {
 
-	@Override
-	public StandaloneDispatcher createDispatcher(
-			@Nonnull RpcService rpcService,
-			@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
-		// create the default dispatcher
-		return new StandaloneDispatcher(
-			rpcService,
-			getEndpointId(),
-			DispatcherServices.from(dispatcherFactoryServices, DefaultJobManagerRunnerFactory.INSTANCE));
-	}
+	T createDispatcherRunner(RpcService rpcService, DispatcherFactoryServices dispatcherFactoryServices) throws Exception;
 }

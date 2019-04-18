@@ -16,32 +16,29 @@
  * limitations under the License.
  */
 
-package org.apache.flink.runtime.minicluster;
+package org.apache.flink.runtime.dispatcher;
 
-import org.apache.flink.runtime.dispatcher.DefaultJobManagerRunnerFactory;
-import org.apache.flink.runtime.dispatcher.DispatcherFactory;
-import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
-import org.apache.flink.runtime.dispatcher.DispatcherServices;
-import org.apache.flink.runtime.dispatcher.StandaloneDispatcher;
+import org.apache.flink.runtime.clusterframework.ApplicationStatus;
 import org.apache.flink.runtime.rpc.RpcService;
 
 import javax.annotation.Nonnull;
 
-/**
- * {@link DispatcherFactory} which creates a {@link StandaloneDispatcher} which has an
- * endpoint id with a random UUID suffix.
- */
-public enum SessionDispatcherWithUUIDFactory implements DispatcherFactory<StandaloneDispatcher> {
-	INSTANCE;
+import java.util.concurrent.CompletableFuture;
 
-	@Override
-	public StandaloneDispatcher createDispatcher(
+/**
+ * Runner which runs a {@link MiniDispatcher} implementation.
+ */
+public class MiniDispatcherRunnerImpl extends DispatcherRunnerImpl<MiniDispatcher> implements MiniDispatcherRunner {
+
+	public MiniDispatcherRunnerImpl(
+			@Nonnull DispatcherFactory<MiniDispatcher> dispatcherFactory,
 			@Nonnull RpcService rpcService,
 			@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
-		// create the default dispatcher
-		return new StandaloneDispatcher(
-			rpcService,
-			generateEndpointIdWithUUID(),
-			DispatcherServices.from(dispatcherFactoryServices, DefaultJobManagerRunnerFactory.INSTANCE));
+		super(dispatcherFactory, rpcService, dispatcherFactoryServices);
+	}
+
+	@Override
+	public CompletableFuture<ApplicationStatus> getShutDownFuture() {
+		return getDispatcher().getJobTerminationFuture();
 	}
 }

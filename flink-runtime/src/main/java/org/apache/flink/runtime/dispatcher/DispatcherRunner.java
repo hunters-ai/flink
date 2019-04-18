@@ -18,24 +18,31 @@
 
 package org.apache.flink.runtime.dispatcher;
 
-import org.apache.flink.runtime.rpc.RpcService;
+import org.apache.flink.util.AutoCloseableAsync;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
- * {@link DispatcherFactory} which creates a {@link StandaloneDispatcher}.
+ * Base interface for all {@link Dispatcher} runner implementations.
  */
-public enum SessionDispatcherFactory implements DispatcherFactory<StandaloneDispatcher> {
-	INSTANCE;
+public interface DispatcherRunner extends AutoCloseableAsync {
 
-	@Override
-	public StandaloneDispatcher createDispatcher(
-			@Nonnull RpcService rpcService,
-			@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
-		// create the default dispatcher
-		return new StandaloneDispatcher(
-			rpcService,
-			getEndpointId(),
-			DispatcherServices.from(dispatcherFactoryServices, DefaultJobManagerRunnerFactory.INSTANCE));
-	}
+	/**
+	 * Get the currently running {@link Dispatcher}. Can be null
+	 * if none is running at the moment.
+	 *
+	 * @return the currently running dispatcher or null if none is running
+	 */
+	@Nullable
+	Dispatcher getDispatcher();
+
+	/**
+	 * Return the termination future of this runner. The termination future
+	 * is being completed, once the runner has been completely terminated.
+	 *
+	 * @return termination future of this runner
+	 */
+	CompletableFuture<Void> getTerminationFuture();
 }

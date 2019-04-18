@@ -18,24 +18,27 @@
 
 package org.apache.flink.runtime.dispatcher;
 
-import org.apache.flink.runtime.rpc.RpcService;
+import org.apache.flink.runtime.clusterframework.ApplicationStatus;
 
-import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
+
+import java.util.concurrent.CompletableFuture;
 
 /**
- * {@link DispatcherFactory} which creates a {@link StandaloneDispatcher}.
+ * Interface for a {@link DispatcherRunner} which runs a {@link MiniDispatcher}.
  */
-public enum SessionDispatcherFactory implements DispatcherFactory<StandaloneDispatcher> {
-	INSTANCE;
+public interface MiniDispatcherRunner extends DispatcherRunner {
 
 	@Override
-	public StandaloneDispatcher createDispatcher(
-			@Nonnull RpcService rpcService,
-			@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
-		// create the default dispatcher
-		return new StandaloneDispatcher(
-			rpcService,
-			getEndpointId(),
-			DispatcherServices.from(dispatcherFactoryServices, DefaultJobManagerRunnerFactory.INSTANCE));
-	}
+	@Nullable
+	MiniDispatcher getDispatcher();
+
+	/**
+	 * Return shut down future of this runner. The shut down future is being
+	 * completed with the final {@link ApplicationStatus} once the runner wants
+	 * to shut down.
+	 *
+	 * @return future with the final application status
+	 */
+	CompletableFuture<ApplicationStatus> getShutDownFuture();
 }

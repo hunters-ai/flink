@@ -18,8 +18,8 @@
 
 package org.apache.flink.runtime.entrypoint.component;
 
-import org.apache.flink.runtime.dispatcher.JobDispatcherFactory;
-import org.apache.flink.runtime.dispatcher.MiniDispatcher;
+import org.apache.flink.runtime.dispatcher.MiniDispatcherRunner;
+import org.apache.flink.runtime.dispatcher.MiniDispatcherRunnerFactory;
 import org.apache.flink.runtime.leaderretrieval.LeaderRetrievalService;
 import org.apache.flink.runtime.metrics.groups.JobManagerMetricGroup;
 import org.apache.flink.runtime.resourcemanager.ResourceManager;
@@ -33,22 +33,22 @@ import javax.annotation.Nonnull;
 /**
  * {@link DispatcherResourceManagerComponentFactory} for a {@link JobDispatcherResourceManagerComponent}.
  */
-public class JobDispatcherResourceManagerComponentFactory extends AbstractDispatcherResourceManagerComponentFactory<MiniDispatcher, RestfulGateway> {
+public class JobDispatcherResourceManagerComponentFactory extends AbstractDispatcherResourceManagerComponentFactory<MiniDispatcherRunner, RestfulGateway> {
 
 	public JobDispatcherResourceManagerComponentFactory(@Nonnull ResourceManagerFactory<?> resourceManagerFactory, @Nonnull JobGraphRetriever jobGraphRetriever) {
-		super(new JobDispatcherFactory(jobGraphRetriever), resourceManagerFactory, JobRestEndpointFactory.INSTANCE);
+		super(new MiniDispatcherRunnerFactory(jobGraphRetriever), resourceManagerFactory, JobRestEndpointFactory.INSTANCE);
 	}
 
 	@Override
-	protected DispatcherResourceManagerComponent<MiniDispatcher> createDispatcherResourceManagerComponent(
-			MiniDispatcher dispatcher,
+	protected DispatcherResourceManagerComponent createDispatcherResourceManagerComponent(
+			MiniDispatcherRunner dispatcherRunner,
 			ResourceManager<?> resourceManager,
 			LeaderRetrievalService dispatcherLeaderRetrievalService,
 			LeaderRetrievalService resourceManagerRetrievalService,
 			WebMonitorEndpoint<?> webMonitorEndpoint,
 			JobManagerMetricGroup jobManagerMetricGroup) {
 		return new JobDispatcherResourceManagerComponent(
-			dispatcher,
+			dispatcherRunner,
 			resourceManager,
 			dispatcherLeaderRetrievalService,
 			resourceManagerRetrievalService,

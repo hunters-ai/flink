@@ -20,6 +20,7 @@ package org.apache.flink.runtime.entrypoint.component;
 
 import org.apache.flink.runtime.clusterframework.ApplicationStatus;
 import org.apache.flink.runtime.dispatcher.MiniDispatcher;
+import org.apache.flink.runtime.dispatcher.MiniDispatcherRunner;
 import org.apache.flink.runtime.leaderretrieval.LeaderRetrievalService;
 import org.apache.flink.runtime.metrics.groups.JobManagerMetricGroup;
 import org.apache.flink.runtime.resourcemanager.ResourceManager;
@@ -31,20 +32,20 @@ import java.util.concurrent.CompletableFuture;
  * {@link DispatcherResourceManagerComponent} for a job cluster. The dispatcher component starts
  * a {@link MiniDispatcher}.
  */
-class JobDispatcherResourceManagerComponent extends DispatcherResourceManagerComponent<MiniDispatcher> {
+class JobDispatcherResourceManagerComponent extends DispatcherResourceManagerComponent {
 
 	JobDispatcherResourceManagerComponent(
-			MiniDispatcher dispatcher,
+			MiniDispatcherRunner dispatcherRunner,
 			ResourceManager<?> resourceManager,
 			LeaderRetrievalService dispatcherLeaderRetrievalService,
 			LeaderRetrievalService resourceManagerRetrievalService,
 			WebMonitorEndpoint<?> webMonitorEndpoint,
 			JobManagerMetricGroup jobManagerMetricGroup) {
-		super(dispatcher, resourceManager, dispatcherLeaderRetrievalService, resourceManagerRetrievalService, webMonitorEndpoint, jobManagerMetricGroup);
+		super(dispatcherRunner, resourceManager, dispatcherLeaderRetrievalService, resourceManagerRetrievalService, webMonitorEndpoint, jobManagerMetricGroup);
 
 		final CompletableFuture<ApplicationStatus> shutDownFuture = getShutDownFuture();
 
-		dispatcher.getJobTerminationFuture().whenComplete((applicationStatus, throwable) -> {
+		dispatcherRunner.getShutDownFuture().whenComplete((applicationStatus, throwable) -> {
 			if (throwable != null) {
 				shutDownFuture.completeExceptionally(throwable);
 			} else {

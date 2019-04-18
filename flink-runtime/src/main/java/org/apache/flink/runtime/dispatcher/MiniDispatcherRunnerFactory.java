@@ -18,24 +18,22 @@
 
 package org.apache.flink.runtime.dispatcher;
 
+import org.apache.flink.runtime.entrypoint.component.JobGraphRetriever;
 import org.apache.flink.runtime.rpc.RpcService;
 
-import javax.annotation.Nonnull;
-
 /**
- * {@link DispatcherFactory} which creates a {@link StandaloneDispatcher}.
+ * Factory for the {@link MiniDispatcherRunnerImpl}.
  */
-public enum SessionDispatcherFactory implements DispatcherFactory<StandaloneDispatcher> {
-	INSTANCE;
+public class MiniDispatcherRunnerFactory implements DispatcherRunnerFactory<MiniDispatcherRunnerImpl> {
+
+	private final JobGraphRetriever jobGraphRetriever;
+
+	public MiniDispatcherRunnerFactory(JobGraphRetriever jobGraphRetriever) {
+		this.jobGraphRetriever = jobGraphRetriever;
+	}
 
 	@Override
-	public StandaloneDispatcher createDispatcher(
-			@Nonnull RpcService rpcService,
-			@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
-		// create the default dispatcher
-		return new StandaloneDispatcher(
-			rpcService,
-			getEndpointId(),
-			DispatcherServices.from(dispatcherFactoryServices, DefaultJobManagerRunnerFactory.INSTANCE));
+	public MiniDispatcherRunnerImpl createDispatcherRunner(RpcService rpcService, DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
+		return new MiniDispatcherRunnerImpl(new JobDispatcherFactory(jobGraphRetriever), rpcService, dispatcherFactoryServices);
 	}
 }
