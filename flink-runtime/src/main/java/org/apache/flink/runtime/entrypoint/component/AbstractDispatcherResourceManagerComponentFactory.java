@@ -29,6 +29,7 @@ import org.apache.flink.runtime.concurrent.FutureUtils;
 import org.apache.flink.runtime.dispatcher.ArchivedExecutionGraphStore;
 import org.apache.flink.runtime.dispatcher.Dispatcher;
 import org.apache.flink.runtime.dispatcher.DispatcherFactory;
+import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
 import org.apache.flink.runtime.dispatcher.DispatcherGateway;
 import org.apache.flink.runtime.dispatcher.DispatcherId;
 import org.apache.flink.runtime.dispatcher.HistoryServerArchivist;
@@ -181,18 +182,21 @@ public abstract class AbstractDispatcherResourceManagerComponentFactory<T extend
 
 			final HistoryServerArchivist historyServerArchivist = HistoryServerArchivist.createHistoryServerArchivist(configuration, webMonitorEndpoint);
 
-			dispatcher = dispatcherFactory.createDispatcher(
+			final DispatcherFactoryServices dispatcherFactoryServices = new DispatcherFactoryServices(
 				configuration,
-				rpcService,
 				highAvailabilityServices,
 				resourceManagerGatewayRetriever,
 				blobServer,
 				heartbeatServices,
 				jobManagerMetricGroup,
-				metricRegistry.getMetricQueryServiceGatewayRpcAddress(),
 				archivedExecutionGraphStore,
 				fatalErrorHandler,
-				historyServerArchivist);
+				historyServerArchivist,
+				metricRegistry.getMetricQueryServiceGatewayRpcAddress());
+
+			dispatcher = dispatcherFactory.createDispatcher(
+				rpcService,
+				dispatcherFactoryServices);
 
 			log.debug("Starting ResourceManager.");
 			resourceManager.start();
