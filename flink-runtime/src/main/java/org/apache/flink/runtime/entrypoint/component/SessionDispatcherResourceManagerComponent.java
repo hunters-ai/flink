@@ -18,7 +18,7 @@
 
 package org.apache.flink.runtime.entrypoint.component;
 
-import org.apache.flink.runtime.dispatcher.DispatcherRunner;
+import org.apache.flink.runtime.dispatcher.runner.DispatcherRunner;
 import org.apache.flink.runtime.leaderretrieval.LeaderRetrievalService;
 import org.apache.flink.runtime.metrics.groups.JobManagerMetricGroup;
 import org.apache.flink.runtime.resourcemanager.ResourceManager;

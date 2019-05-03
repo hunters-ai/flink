@@ -27,12 +27,11 @@ import org.apache.flink.runtime.blob.BlobServer;
 import org.apache.flink.runtime.clusterframework.types.ResourceID;
 import org.apache.flink.runtime.concurrent.FutureUtils;
 import org.apache.flink.runtime.dispatcher.ArchivedExecutionGraphStore;
-import org.apache.flink.runtime.dispatcher.Dispatcher;
 import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
 import org.apache.flink.runtime.dispatcher.DispatcherGateway;
 import org.apache.flink.runtime.dispatcher.DispatcherId;
-import org.apache.flink.runtime.dispatcher.DispatcherRunner;
-import org.apache.flink.runtime.dispatcher.DispatcherRunnerFactory;
+import org.apache.flink.runtime.dispatcher.runner.DispatcherRunner;
+import org.apache.flink.runtime.dispatcher.runner.DispatcherRunnerFactory;
 import org.apache.flink.runtime.dispatcher.HistoryServerArchivist;
 import org.apache.flink.runtime.entrypoint.ClusterInformation;
 import org.apache.flink.runtime.heartbeat.HeartbeatServices;
@@ -73,15 +72,14 @@ import java.util.concurrent.ExecutorService;
 /**
  * Abstract class which implements the creation of the {@link DispatcherResourceManagerComponent} components.
  *
- * @param <T> type of the {@link Dispatcher}
  * @param <U> type of the {@link RestfulGateway} given to the {@link WebMonitorEndpoint}
  */
-public abstract class AbstractDispatcherResourceManagerComponentFactory<T extends DispatcherRunner, U extends RestfulGateway> implements DispatcherResourceManagerComponentFactory {
+public class DispatcherResourceManagerComponentFactoryImpl<U extends RestfulGateway> implements DispatcherResourceManagerComponentFactory {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
 	@Nonnull
-	private final DispatcherRunnerFactory<? extends T> dispatcherRunnerFactory;
+	private final DispatcherRunnerFactory dispatcherRunnerFactory;
 
 	@Nonnull
 	private final ResourceManagerFactory<?> resourceManagerFactory;
@@ -89,8 +87,8 @@ public abstract class AbstractDispatcherResourceManagerComponentFactory<T extend
 	@Nonnull
 	private final RestEndpointFactory<U> restEndpointFactory;
 
-	public AbstractDispatcherResourceManagerComponentFactory(
-			@Nonnull DispatcherRunnerFactory<? extends T> dispatcherRunnerFactory,
+	public DispatcherResourceManagerComponentFactoryImpl(
+			@Nonnull DispatcherRunnerFactory dispatcherRunnerFactory,
 			@Nonnull ResourceManagerFactory<?> resourceManagerFactory,
 			@Nonnull RestEndpointFactory<U> restEndpointFactory) {
 		this.dispatcherRunnerFactory = dispatcherRunnerFactory;
@@ -116,7 +114,7 @@ public abstract class AbstractDispatcherResourceManagerComponentFactory<T extend
 		WebMonitorEndpoint<U> webMonitorEndpoint = null;
 		ResourceManager<?> resourceManager = null;
 		JobManagerMetricGroup jobManagerMetricGroup = null;
-		T dispatcherRunner = null;
+		DispatcherRunner dispatcherRunner = null;
 
 		try {
 			dispatcherLeaderRetrievalService = highAvailabilityServices.getDispatcherLeaderRetriever();
@@ -208,7 +206,7 @@ public abstract class AbstractDispatcherResourceManagerComponentFactory<T extend
 			resourceManagerRetrievalService.start(resourceManagerGatewayRetriever);
 			dispatcherLeaderRetrievalService.start(dispatcherGatewayRetriever);
 
-			return createDispatcherResourceManagerComponent(
+			return new DispatcherResourceManagerComponent(
 				dispatcherRunner,
 				resourceManager,
 				dispatcherLeaderRetrievalService,
@@ -268,12 +266,4 @@ public abstract class AbstractDispatcherResourceManagerComponentFactory<T extend
 		final String rpcServiceAddress = rpcService.getAddress();
 		return rpcServiceAddress != null && rpcServiceAddress.isEmpty() ? "localhost" : rpcServiceAddress;
 	}
-
-	protected abstract DispatcherResourceManagerComponent createDispatcherResourceManagerComponent(
-		T dispatcherRunner,
-		ResourceManager<?> resourceManager,
-		LeaderRetrievalService dispatcherLeaderRetrievalService,
-		LeaderRetrievalService resourceManagerRetrievalService,
-		WebMonitorEndpoint<?> webMonitorEndpoint,
-		JobManagerMetricGroup jobManagerMetricGroup);
 }

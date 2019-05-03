@@ -16,29 +16,32 @@
  * limitations under the License.
  */
 
-package org.apache.flink.runtime.dispatcher;
+package org.apache.flink.runtime.dispatcher.runner;
 
 import org.apache.flink.runtime.clusterframework.ApplicationStatus;
+import org.apache.flink.runtime.dispatcher.DispatcherFactory;
+import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
+import org.apache.flink.runtime.dispatcher.MiniDispatcher;
+import org.apache.flink.runtime.rpc.RpcService;
 
-import javax.annotation.Nullable;
+import javax.annotation.Nonnull;
 
 import java.util.concurrent.CompletableFuture;
 
 /**
- * Interface for a {@link DispatcherRunner} which runs a {@link MiniDispatcher}.
+ * Runner which runs a {@link MiniDispatcher} implementation.
  */
-public interface MiniDispatcherRunner extends DispatcherRunner {
+class MiniDispatcherRunnerImpl extends DispatcherRunnerImpl<MiniDispatcher> {
+
+	MiniDispatcherRunnerImpl(
+			@Nonnull DispatcherFactory<MiniDispatcher> dispatcherFactory,
+			@Nonnull RpcService rpcService,
+			@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
+		super(dispatcherFactory, rpcService, dispatcherFactoryServices);
+	}
 
 	@Override
-	@Nullable
-	MiniDispatcher getDispatcher();
-
-	/**
-	 * Return shut down future of this runner. The shut down future is being
-	 * completed with the final {@link ApplicationStatus} once the runner wants
-	 * to shut down.
-	 *
-	 * @return future with the final application status
-	 */
-	CompletableFuture<ApplicationStatus> getShutDownFuture();
+	public CompletableFuture<ApplicationStatus> getShutDownFuture() {
+		return getDispatcher().getJobTerminationFuture();
+	}
 }

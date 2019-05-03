@@ -16,15 +16,17 @@
  * limitations under the License.
  */
 
-package org.apache.flink.runtime.dispatcher;
+package org.apache.flink.runtime.dispatcher.runner;
 
+import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
+import org.apache.flink.runtime.dispatcher.JobDispatcherFactory;
 import org.apache.flink.runtime.entrypoint.component.JobGraphRetriever;
 import org.apache.flink.runtime.rpc.RpcService;
 
 /**
  * Factory for the {@link MiniDispatcherRunnerImpl}.
  */
-public class MiniDispatcherRunnerFactory implements DispatcherRunnerFactory<MiniDispatcherRunnerImpl> {
+public class MiniDispatcherRunnerFactory implements DispatcherRunnerFactory {
 
 	private final JobGraphRetriever jobGraphRetriever;
 

@@ -16,29 +16,15 @@
  * limitations under the License.
  */
 
-package org.apache.flink.runtime.dispatcher;
+package org.apache.flink.runtime.dispatcher.runner;
 
-import org.apache.flink.runtime.clusterframework.ApplicationStatus;
+import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
 import org.apache.flink.runtime.rpc.RpcService;
 
-import javax.annotation.Nonnull;
-
-import java.util.concurrent.CompletableFuture;
-
 /**
- * Runner which runs a {@link MiniDispatcher} implementation.
+ * Factory interface for the {@link DispatcherRunner}.
  */
-public class MiniDispatcherRunnerImpl extends DispatcherRunnerImpl<MiniDispatcher> implements MiniDispatcherRunner {
+public interface DispatcherRunnerFactory {
 
-	public MiniDispatcherRunnerImpl(
-			@Nonnull DispatcherFactory<MiniDispatcher> dispatcherFactory,
-			@Nonnull RpcService rpcService,
-			@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
-		super(dispatcherFactory, rpcService, dispatcherFactoryServices);
-	}
-
-	@Override
-	public CompletableFuture<ApplicationStatus> getShutDownFuture() {
-		return getDispatcher().getJobTerminationFuture();
-	}
+	DispatcherRunner createDispatcherRunner(RpcService rpcService, DispatcherFactoryServices dispatcherFactoryServices) throws Exception;
 }

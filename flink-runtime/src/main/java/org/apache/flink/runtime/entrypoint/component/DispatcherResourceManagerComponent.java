@@ -21,7 +21,7 @@ package org.apache.flink.runtime.entrypoint.component;
 import org.apache.flink.runtime.clusterframework.ApplicationStatus;
 import org.apache.flink.runtime.concurrent.FutureUtils;
 import org.apache.flink.runtime.dispatcher.Dispatcher;
-import org.apache.flink.runtime.dispatcher.DispatcherRunner;
+import org.apache.flink.runtime.dispatcher.runner.DispatcherRunner;
 import org.apache.flink.runtime.leaderretrieval.LeaderRetrievalService;
 import org.apache.flink.runtime.metrics.groups.JobManagerMetricGroup;
 import org.apache.flink.runtime.resourcemanager.ResourceManager;
@@ -88,25 +88,7 @@ public class DispatcherResourceManagerComponent implements AutoCloseableAsync {
 	}
 
 	private void registerShutDownFuture() {
-		terminationFuture.whenComplete(
-			(aVoid, throwable) -> {
-				if (throwable != null) {
-					shutDownFuture.completeExceptionally(throwable);
-				} else {
-					shutDownFuture.complete(ApplicationStatus.SUCCEEDED);
-				}
-			});
-
-		dispatcherRunner
-			.getTerminationFuture()
-			.whenComplete(
-				(aVoid, throwable) -> {
-					if (throwable != null) {
-						shutDownFuture.completeExceptionally(throwable);
-					} else {
-						shutDownFuture.complete(ApplicationStatus.SUCCEEDED);
-					}
-				});
+		FutureUtils.forward(dispatcherRunner.getShutDownFuture(), shutDownFuture);
 	}
 
 	public final CompletableFuture<ApplicationStatus> getShutDownFuture() {

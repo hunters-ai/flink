@@ -16,14 +16,17 @@
  * limitations under the License.
  */
 
-package org.apache.flink.runtime.dispatcher;
+package org.apache.flink.runtime.dispatcher.runner;
 
+import org.apache.flink.runtime.dispatcher.DispatcherFactory;
+import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
+import org.apache.flink.runtime.dispatcher.StandaloneDispatcher;
 import org.apache.flink.runtime.rpc.RpcService;
 
 /**
  * Factory which creates a {@link DispatcherRunnerImpl} which runs a {@link StandaloneDispatcher}.
  */
-public class StandaloneDispatcherRunnerFactory implements DispatcherRunnerFactory<DispatcherRunnerImpl<StandaloneDispatcher>> {
+public class StandaloneDispatcherRunnerFactory implements DispatcherRunnerFactory {
 
 	private final DispatcherFactory<StandaloneDispatcher> dispatcherFactory;
 

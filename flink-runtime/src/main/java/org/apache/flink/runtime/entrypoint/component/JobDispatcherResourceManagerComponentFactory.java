@@ -18,41 +18,19 @@
 
 package org.apache.flink.runtime.entrypoint.component;
 
-import org.apache.flink.runtime.dispatcher.MiniDispatcherRunner;
-import org.apache.flink.runtime.dispatcher.MiniDispatcherRunnerFactory;
-import org.apache.flink.runtime.leaderretrieval.LeaderRetrievalService;
-import org.apache.flink.runtime.metrics.groups.JobManagerMetricGroup;
-import org.apache.flink.runtime.resourcemanager.ResourceManager;
+import org.apache.flink.runtime.dispatcher.runner.MiniDispatcherRunnerFactory;
 import org.apache.flink.runtime.resourcemanager.ResourceManagerFactory;
 import org.apache.flink.runtime.rest.JobRestEndpointFactory;
 import org.apache.flink.runtime.webmonitor.RestfulGateway;
-import org.apache.flink.runtime.webmonitor.WebMonitorEndpoint;
 
 import javax.annotation.Nonnull;
 
 /**
- * {@link DispatcherResourceManagerComponentFactory} for a {@link JobDispatcherResourceManagerComponent}.
+ * {@link DispatcherResourceManagerComponentFactoryImpl} for a job {@link DispatcherResourceManagerComponent}.
  */
-public class JobDispatcherResourceManagerComponentFactory extends AbstractDispatcherResourceManagerComponentFactory<MiniDispatcherRunner, RestfulGateway> {
+public class JobDispatcherResourceManagerComponentFactory extends DispatcherResourceManagerComponentFactoryImpl<RestfulGateway> {
 
 	public JobDispatcherResourceManagerComponentFactory(@Nonnull ResourceManagerFactory<?> resourceManagerFactory, @Nonnull JobGraphRetriever jobGraphRetriever) {
 		super(new MiniDispatcherRunnerFactory(jobGraphRetriever), resourceManagerFactory, JobRestEndpointFactory.INSTANCE);
-	}
-
-	@Override
-	protected DispatcherResourceManagerComponent createDispatcherResourceManagerComponent(
-			MiniDispatcherRunner dispatcherRunner,
-			ResourceManager<?> resourceManager,
-			LeaderRetrievalService dispatcherLeaderRetrievalService,
-			LeaderRetrievalService resourceManagerRetrievalService,
-			WebMonitorEndpoint<?> webMonitorEndpoint,
-			JobManagerMetricGroup jobManagerMetricGroup) {
-		return new JobDispatcherResourceManagerComponent(
-			dispatcherRunner,
-			resourceManager,
-			dispatcherLeaderRetrievalService,
-			resourceManagerRetrievalService,
-			webMonitorEndpoint,
-			jobManagerMetricGroup);
 	}
 }

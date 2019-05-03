@@ -16,9 +16,13 @@
  * limitations under the License.
  */
 
-package org.apache.flink.runtime.dispatcher;
+package org.apache.flink.runtime.dispatcher.runner;
 
+import org.apache.flink.runtime.clusterframework.ApplicationStatus;
 import org.apache.flink.runtime.concurrent.FutureUtils;
+import org.apache.flink.runtime.dispatcher.Dispatcher;
+import org.apache.flink.runtime.dispatcher.DispatcherFactory;
+import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
 import org.apache.flink.runtime.rpc.RpcService;
 
 import javax.annotation.Nonnull;
@@ -31,18 +35,26 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Runner responsible for executing a {@link Dispatcher} or a subclass thereof.
  */
-public class DispatcherRunnerImpl<T extends Dispatcher> implements DispatcherRunner {
+class DispatcherRunnerImpl<T extends Dispatcher> implements DispatcherRunner {
 
 	@Nonnull
 	private final T dispatcher;
 
-	public DispatcherRunnerImpl(
-			@Nonnull DispatcherFactory<T> dispatcherFactory,
-			@Nonnull RpcService rpcService,
-			@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
+	private final CompletableFuture<ApplicationStatus> shutDownFuture;
+
+	DispatcherRunnerImpl(
+		@Nonnull DispatcherFactory<T> dispatcherFactory,
+		@Nonnull RpcService rpcService,
+		@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
 		this.dispatcher = dispatcherFactory.createDispatcher(
 			rpcService,
 			dispatcherFactoryServices);
+		shutDownFuture = new CompletableFuture<>();
+
+		FutureUtils.forward(
+			dispatcher.getTerminationFuture().thenApply((ignored) -> ApplicationStatus.UNKNOWN),
+			shutDownFuture);
+
 		dispatcher.start();
 	}
 
@@ -68,7 +80,7 @@ public class DispatcherRunnerImpl<T extends Dispatcher> implements DispatcherRun
 	}
 
 	@Override
-	public CompletableFuture<Void> getTerminationFuture() {
-		return dispatcher.getTerminationFuture();
+	public CompletableFuture<ApplicationStatus> getShutDownFuture() {
+		return shutDownFuture;
 	}
 }

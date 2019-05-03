@@ -20,23 +20,18 @@ package org.apache.flink.runtime.entrypoint.component;
 
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.runtime.dispatcher.DispatcherGateway;
-import org.apache.flink.runtime.dispatcher.DispatcherRunner;
-import org.apache.flink.runtime.dispatcher.DispatcherRunnerFactory;
+import org.apache.flink.runtime.dispatcher.runner.DispatcherRunnerFactory;
 import org.apache.flink.runtime.dispatcher.SessionDispatcherFactory;
-import org.apache.flink.runtime.dispatcher.StandaloneDispatcherRunnerFactory;
-import org.apache.flink.runtime.leaderretrieval.LeaderRetrievalService;
-import org.apache.flink.runtime.metrics.groups.JobManagerMetricGroup;
-import org.apache.flink.runtime.resourcemanager.ResourceManager;
+import org.apache.flink.runtime.dispatcher.runner.StandaloneDispatcherRunnerFactory;
 import org.apache.flink.runtime.resourcemanager.ResourceManagerFactory;
 import org.apache.flink.runtime.rest.SessionRestEndpointFactory;
-import org.apache.flink.runtime.webmonitor.WebMonitorEndpoint;
 
 import javax.annotation.Nonnull;
 
 /**
- * {@link DispatcherResourceManagerComponentFactory} for a {@link SessionDispatcherResourceManagerComponent}.
+ * {@link DispatcherResourceManagerComponentFactoryImpl} for a {@link SessionDispatcherResourceManagerComponent}.
  */
-public class SessionDispatcherResourceManagerComponentFactory extends AbstractDispatcherResourceManagerComponentFactory<DispatcherRunner, DispatcherGateway> {
+public class SessionDispatcherResourceManagerComponentFactory extends DispatcherResourceManagerComponentFactoryImpl<DispatcherGateway> {
 
 	public SessionDispatcherResourceManagerComponentFactory(@Nonnull ResourceManagerFactory<?> resourceManagerFactory) {
 		this(new StandaloneDispatcherRunnerFactory(SessionDispatcherFactory.INSTANCE), resourceManagerFactory);
@@ -44,25 +39,8 @@ public class SessionDispatcherResourceManagerComponentFactory extends AbstractDi
 
 	@VisibleForTesting
 	public SessionDispatcherResourceManagerComponentFactory(
-			@Nonnull DispatcherRunnerFactory<? extends DispatcherRunner> dispatcherFactory,
+			@Nonnull DispatcherRunnerFactory dispatcherFactory,
 			@Nonnull ResourceManagerFactory<?> resourceManagerFactory) {
 		super(dispatcherFactory, resourceManagerFactory, SessionRestEndpointFactory.INSTANCE);
-	}
-
-	@Override
-	protected DispatcherResourceManagerComponent createDispatcherResourceManagerComponent(
-			DispatcherRunner dispatcherRunner,
-			ResourceManager<?> resourceManager,
-			LeaderRetrievalService dispatcherLeaderRetrievalService,
-			LeaderRetrievalService resourceManagerRetrievalService,
-			WebMonitorEndpoint<?> webMonitorEndpoint,
-			JobManagerMetricGroup jobManagerMetricGroup) {
-		return new SessionDispatcherResourceManagerComponent(
-			dispatcherRunner,
-			resourceManager,
-			dispatcherLeaderRetrievalService,
-			resourceManagerRetrievalService,
-			webMonitorEndpoint,
-			jobManagerMetricGroup);
 	}
 }
