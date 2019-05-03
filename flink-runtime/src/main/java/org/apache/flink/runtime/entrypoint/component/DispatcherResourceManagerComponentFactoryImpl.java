@@ -30,9 +30,9 @@ import org.apache.flink.runtime.dispatcher.ArchivedExecutionGraphStore;
 import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
 import org.apache.flink.runtime.dispatcher.DispatcherGateway;
 import org.apache.flink.runtime.dispatcher.DispatcherId;
+import org.apache.flink.runtime.dispatcher.HistoryServerArchivist;
 import org.apache.flink.runtime.dispatcher.runner.DispatcherRunner;
 import org.apache.flink.runtime.dispatcher.runner.DispatcherRunnerFactory;
-import org.apache.flink.runtime.dispatcher.HistoryServerArchivist;
 import org.apache.flink.runtime.entrypoint.ClusterInformation;
 import org.apache.flink.runtime.heartbeat.HeartbeatServices;
 import org.apache.flink.runtime.highavailability.HighAvailabilityServices;
@@ -50,7 +50,6 @@ import org.apache.flink.runtime.rest.handler.legacy.metrics.MetricFetcherImpl;
 import org.apache.flink.runtime.rest.handler.legacy.metrics.VoidMetricFetcher;
 import org.apache.flink.runtime.rpc.FatalErrorHandler;
 import org.apache.flink.runtime.rpc.RpcService;
-import org.apache.flink.runtime.webmonitor.RestfulGateway;
 import org.apache.flink.runtime.webmonitor.WebMonitorEndpoint;
 import org.apache.flink.runtime.webmonitor.retriever.LeaderGatewayRetriever;
 import org.apache.flink.runtime.webmonitor.retriever.MetricQueryServiceRetriever;
@@ -71,10 +70,8 @@ import java.util.concurrent.ExecutorService;
 
 /**
  * Abstract class which implements the creation of the {@link DispatcherResourceManagerComponent} components.
- *
- * @param <U> type of the {@link RestfulGateway} given to the {@link WebMonitorEndpoint}
  */
-public class DispatcherResourceManagerComponentFactoryImpl<U extends RestfulGateway> implements DispatcherResourceManagerComponentFactory {
+public class DispatcherResourceManagerComponentFactoryImpl implements DispatcherResourceManagerComponentFactory {
 
 	private final Logger log = LoggerFactory.getLogger(getClass());
 
@@ -85,12 +82,12 @@ public class DispatcherResourceManagerComponentFactoryImpl<U extends RestfulGate
 	private final ResourceManagerFactory<?> resourceManagerFactory;
 
 	@Nonnull
-	private final RestEndpointFactory<U> restEndpointFactory;
+	private final RestEndpointFactory<?> restEndpointFactory;
 
 	public DispatcherResourceManagerComponentFactoryImpl(
 			@Nonnull DispatcherRunnerFactory dispatcherRunnerFactory,
 			@Nonnull ResourceManagerFactory<?> resourceManagerFactory,
-			@Nonnull RestEndpointFactory<U> restEndpointFactory) {
+			@Nonnull RestEndpointFactory<?> restEndpointFactory) {
 		this.dispatcherRunnerFactory = dispatcherRunnerFactory;
 		this.resourceManagerFactory = resourceManagerFactory;
 		this.restEndpointFactory = restEndpointFactory;
@@ -111,7 +108,7 @@ public class DispatcherResourceManagerComponentFactoryImpl<U extends RestfulGate
 
 		LeaderRetrievalService dispatcherLeaderRetrievalService = null;
 		LeaderRetrievalService resourceManagerRetrievalService = null;
-		WebMonitorEndpoint<U> webMonitorEndpoint = null;
+		WebMonitorEndpoint<?> webMonitorEndpoint = null;
 		ResourceManager<?> resourceManager = null;
 		JobManagerMetricGroup jobManagerMetricGroup = null;
 		DispatcherRunner dispatcherRunner = null;

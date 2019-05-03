@@ -18,19 +18,19 @@
 
 package org.apache.flink.runtime.entrypoint.component;
 
-import org.apache.flink.runtime.dispatcher.runner.MiniDispatcherRunnerFactory;
+import org.apache.flink.runtime.dispatcher.JobDispatcherFactory;
+import org.apache.flink.runtime.dispatcher.runner.DispatcherRunnerFactoryImpl;
 import org.apache.flink.runtime.resourcemanager.ResourceManagerFactory;
 import org.apache.flink.runtime.rest.JobRestEndpointFactory;
-import org.apache.flink.runtime.webmonitor.RestfulGateway;
 
 import javax.annotation.Nonnull;
 
 /**
  * {@link DispatcherResourceManagerComponentFactoryImpl} for a job {@link DispatcherResourceManagerComponent}.
  */
-public class JobDispatcherResourceManagerComponentFactory extends DispatcherResourceManagerComponentFactoryImpl<RestfulGateway> {
+public class JobDispatcherResourceManagerComponentFactory extends DispatcherResourceManagerComponentFactoryImpl {
 
 	public JobDispatcherResourceManagerComponentFactory(@Nonnull ResourceManagerFactory<?> resourceManagerFactory, @Nonnull JobGraphRetriever jobGraphRetriever) {
-		super(new MiniDispatcherRunnerFactory(jobGraphRetriever), resourceManagerFactory, JobRestEndpointFactory.INSTANCE);
+		super(new DispatcherRunnerFactoryImpl(new JobDispatcherFactory(jobGraphRetriever)), resourceManagerFactory, JobRestEndpointFactory.INSTANCE);
 	}
 }

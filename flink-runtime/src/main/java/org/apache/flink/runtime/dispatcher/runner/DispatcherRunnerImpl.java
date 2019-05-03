@@ -35,32 +35,25 @@ import java.util.concurrent.CompletableFuture;
 /**
  * Runner responsible for executing a {@link Dispatcher} or a subclass thereof.
  */
-class DispatcherRunnerImpl<T extends Dispatcher> implements DispatcherRunner {
+class DispatcherRunnerImpl implements DispatcherRunner {
 
 	@Nonnull
-	private final T dispatcher;
-
-	private final CompletableFuture<ApplicationStatus> shutDownFuture;
+	private final Dispatcher dispatcher;
 
 	DispatcherRunnerImpl(
-		@Nonnull DispatcherFactory<T> dispatcherFactory,
+		@Nonnull DispatcherFactory dispatcherFactory,
 		@Nonnull RpcService rpcService,
 		@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
 		this.dispatcher = dispatcherFactory.createDispatcher(
 			rpcService,
 			dispatcherFactoryServices);
-		shutDownFuture = new CompletableFuture<>();
-
-		FutureUtils.forward(
-			dispatcher.getTerminationFuture().thenApply((ignored) -> ApplicationStatus.UNKNOWN),
-			shutDownFuture);
 
 		dispatcher.start();
 	}
 
 	@Nullable
 	@Override
-	public T getDispatcher() {
+	public Dispatcher getDispatcher() {
 		return dispatcher;
 	}
 
@@ -81,6 +74,6 @@ class DispatcherRunnerImpl<T extends Dispatcher> implements DispatcherRunner {
 
 	@Override
 	public CompletableFuture<ApplicationStatus> getShutDownFuture() {
-		return shutDownFuture;
+		return dispatcher.getShutDownFuture();
 	}
 }

@@ -25,7 +25,7 @@ import javax.annotation.Nonnull;
 /**
  * {@link DispatcherFactory} which creates a {@link StandaloneDispatcher}.
  */
-public enum SessionDispatcherFactory implements DispatcherFactory<StandaloneDispatcher> {
+public enum SessionDispatcherFactory implements DispatcherFactory {
 	INSTANCE;
 
 	@Override

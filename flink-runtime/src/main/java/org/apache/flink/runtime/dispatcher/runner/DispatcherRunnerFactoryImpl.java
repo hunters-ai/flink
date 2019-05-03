@@ -18,30 +18,26 @@
 
 package org.apache.flink.runtime.dispatcher.runner;
 
-import org.apache.flink.runtime.clusterframework.ApplicationStatus;
 import org.apache.flink.runtime.dispatcher.DispatcherFactory;
 import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
-import org.apache.flink.runtime.dispatcher.MiniDispatcher;
+import org.apache.flink.runtime.dispatcher.StandaloneDispatcher;
 import org.apache.flink.runtime.rpc.RpcService;
 
-import javax.annotation.Nonnull;
-
-import java.util.concurrent.CompletableFuture;
-
 /**
- * Runner which runs a {@link MiniDispatcher} implementation.
+ * Factory which creates a {@link DispatcherRunnerImpl} which runs a {@link StandaloneDispatcher}.
  */
-class MiniDispatcherRunnerImpl extends DispatcherRunnerImpl<MiniDispatcher> {
+public class DispatcherRunnerFactoryImpl implements DispatcherRunnerFactory {
 
-	MiniDispatcherRunnerImpl(
-			@Nonnull DispatcherFactory<MiniDispatcher> dispatcherFactory,
-			@Nonnull RpcService rpcService,
-			@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
-		super(dispatcherFactory, rpcService, dispatcherFactoryServices);
+	private final DispatcherFactory dispatcherFactory;
+
+	public DispatcherRunnerFactoryImpl(DispatcherFactory dispatcherFactory) {
+		this.dispatcherFactory = dispatcherFactory;
 	}
 
 	@Override
-	public CompletableFuture<ApplicationStatus> getShutDownFuture() {
-		return getDispatcher().getJobTerminationFuture();
+	public DispatcherRunnerImpl createDispatcherRunner(
+			RpcService rpcService,
+			DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
+		return new DispatcherRunnerImpl(dispatcherFactory, rpcService, dispatcherFactoryServices);
 	}
 }
