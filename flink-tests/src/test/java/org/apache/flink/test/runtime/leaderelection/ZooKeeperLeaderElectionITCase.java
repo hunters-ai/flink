@@ -23,7 +23,7 @@ import org.apache.flink.api.common.time.Time;
 import org.apache.flink.api.java.tuple.Tuple2;
 import org.apache.flink.configuration.ClusterOptions;
 import org.apache.flink.configuration.Configuration;
-import org.apache.flink.runtime.dispatcher.Dispatcher;
+import org.apache.flink.runtime.dispatcher.DispatcherGateway;
 import org.apache.flink.runtime.dispatcher.runner.DispatcherRunner;
 import org.apache.flink.runtime.entrypoint.component.DispatcherResourceManagerComponent;
 import org.apache.flink.runtime.execution.Environment;
@@ -58,7 +58,6 @@ import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 import static org.hamcrest.Matchers.is;
-import static org.hamcrest.Matchers.notNullValue;
 import static org.junit.Assert.assertThat;
 
 /**
@@ -138,11 +137,9 @@ public class ZooKeeperLeaderElectionITCase extends TestLogger {
 					newLeaderRetriever);
 
 				final DispatcherRunner dispatcherRunner = leadingDispatcherResourceManagerComponent.getDispatcherRunner();
-				final Dispatcher dispatcher = dispatcherRunner.getDispatcher();
+				final DispatcherGateway dispatcherGateway = dispatcherRunner.getDispatcherGateway().get();
 
-				assertThat(dispatcher, is(notNullValue()));
-
-				CommonTestUtils.waitUntilCondition(() -> dispatcher.requestJobStatus(jobGraph.getJobID(), RPC_TIMEOUT).get() == JobStatus.RUNNING, timeout, 50L);
+				CommonTestUtils.waitUntilCondition(() -> dispatcherGateway.requestJobStatus(jobGraph.getJobID(), RPC_TIMEOUT).get() == JobStatus.RUNNING, timeout, 50L);
 
 				leadingDispatcherResourceManagerComponent.closeAsync();
 			}
@@ -152,11 +149,9 @@ public class ZooKeeperLeaderElectionITCase extends TestLogger {
 				newLeaderRetriever);
 
 			final DispatcherRunner dispatcherRunner = leadingDispatcherResourceManagerComponent.getDispatcherRunner();
-			final Dispatcher dispatcher = dispatcherRunner.getDispatcher();
+			final DispatcherGateway dispatcherGateway = dispatcherRunner.getDispatcherGateway().get();
 
-			assertThat(dispatcher, is(notNullValue()));
-
-			CompletableFuture<JobResult> jobResultFuture = dispatcher.requestJobResult(jobGraph.getJobID(), RPC_TIMEOUT);
+			CompletableFuture<JobResult> jobResultFuture = dispatcherGateway.requestJobResult(jobGraph.getJobID(), RPC_TIMEOUT);
 			BlockingOperator.unblock();
 
 			assertThat(jobResultFuture.get().isSuccess(), is(true));
@@ -184,9 +179,9 @@ public class ZooKeeperLeaderElectionITCase extends TestLogger {
 	private static Optional<DispatcherResourceManagerComponent> findLeadingDispatcherResourceManagerComponent(Collection<DispatcherResourceManagerComponent> dispatcherResourceManagerComponents, String address) {
 		for (DispatcherResourceManagerComponent dispatcherResourceManagerComponent : dispatcherResourceManagerComponents) {
 			final DispatcherRunner dispatcherRunner = dispatcherResourceManagerComponent.getDispatcherRunner();
-			final Dispatcher dispatcher = dispatcherRunner.getDispatcher();
+			final DispatcherGateway dispatcherGateway = dispatcherRunner.getDispatcherGateway().getNow(null);
 
-			if (dispatcher != null && dispatcher.getAddress().equals(address)) {
+			if (dispatcherGateway != null && dispatcherGateway.getAddress().equals(address)) {
 				return Optional.of(dispatcherResourceManagerComponent);
 			}
 		}

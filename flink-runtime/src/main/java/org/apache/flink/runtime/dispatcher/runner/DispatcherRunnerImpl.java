@@ -23,7 +23,10 @@ import org.apache.flink.runtime.concurrent.FutureUtils;
 import org.apache.flink.runtime.dispatcher.Dispatcher;
 import org.apache.flink.runtime.dispatcher.DispatcherFactory;
 import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
+import org.apache.flink.runtime.dispatcher.DispatcherGateway;
+import org.apache.flink.runtime.leaderretrieval.LeaderRetrievalService;
 import org.apache.flink.runtime.rpc.RpcService;
+import org.apache.flink.runtime.webmonitor.retriever.LeaderRetriever;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
@@ -40,6 +43,10 @@ class DispatcherRunnerImpl implements DispatcherRunner {
 	@Nonnull
 	private final Dispatcher dispatcher;
 
+	private final LeaderRetrievalService leaderRetrievalService;
+
+	private final LeaderRetriever leaderRetriever;
+
 	DispatcherRunnerImpl(
 		@Nonnull DispatcherFactory dispatcherFactory,
 		@Nonnull RpcService rpcService,
@@ -47,19 +54,27 @@ class DispatcherRunnerImpl implements DispatcherRunner {
 		this.dispatcher = dispatcherFactory.createDispatcher(
 			rpcService,
 			dispatcherFactoryServices);
+		this.leaderRetrievalService = dispatcherFactoryServices.getHighAvailabilityServices().getDispatcherLeaderRetriever();
+		this.leaderRetriever = new LeaderRetriever();
 
+		leaderRetrievalService.start(leaderRetriever);
 		dispatcher.start();
 	}
 
-	@Nullable
 	@Override
-	public Dispatcher getDispatcher() {
-		return dispatcher;
+	public CompletableFuture<DispatcherGateway> getDispatcherGateway() {
+		return leaderRetriever.getLeaderFuture().thenApply(ignored -> dispatcher.getSelfGateway(DispatcherGateway.class));
 	}
 
 	@Override
 	public CompletableFuture<Void> closeAsync() {
 		Exception exception = null;
+
+		try {
+			leaderRetrievalService.stop();
+		} catch (Exception e) {
+			exception = e;
+		}
 
 		Collection<CompletableFuture<Void>> terminationFutures = new ArrayList<>(2);
 
