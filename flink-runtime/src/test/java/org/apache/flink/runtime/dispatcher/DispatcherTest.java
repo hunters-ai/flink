@@ -41,6 +41,7 @@ import org.apache.flink.runtime.jobgraph.JobStatus;
 import org.apache.flink.runtime.jobgraph.JobVertex;
 import org.apache.flink.runtime.jobmanager.JobGraphStore;
 import org.apache.flink.runtime.jobmaster.JobManagerRunner;
+import org.apache.flink.runtime.jobmaster.JobManagerRunnerImpl;
 import org.apache.flink.runtime.jobmaster.JobManagerSharedServices;
 import org.apache.flink.runtime.jobmaster.JobNotFinishedException;
 import org.apache.flink.runtime.jobmaster.JobResult;
@@ -629,7 +630,7 @@ public class DispatcherTest extends TestLogger {
 	}
 
 	/**
-	 * Tests that a blocking {@link JobManagerRunner} creation, e.g. due to blocking FileSystem access,
+	 * Tests that a blocking {@link JobManagerRunnerImpl} creation, e.g. due to blocking FileSystem access,
 	 * does not block the {@link Dispatcher}.
 	 *
 	 * <p>See FLINK-10314
@@ -662,7 +663,7 @@ public class DispatcherTest extends TestLogger {
 	}
 
 	/**
-	 * Tests that a failing {@link JobManagerRunner} will be properly cleaned up.
+	 * Tests that a failing {@link JobManagerRunnerImpl} will be properly cleaned up.
 	 */
 	@Test
 	public void testFailingJobManagerRunnerCleanup() throws Exception {
