@@ -20,7 +20,7 @@ package org.apache.flink.runtime.minicluster;
 
 import org.apache.flink.runtime.dispatcher.DefaultJobManagerRunnerFactory;
 import org.apache.flink.runtime.dispatcher.DispatcherFactory;
-import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
+import org.apache.flink.runtime.dispatcher.PartialDispatcherFactoryServices;
 import org.apache.flink.runtime.dispatcher.DispatcherServices;
 import org.apache.flink.runtime.dispatcher.StandaloneDispatcher;
 import org.apache.flink.runtime.rpc.RpcService;
@@ -37,7 +37,7 @@ public enum SessionDispatcherWithUUIDFactory implements DispatcherFactory {
 	@Override
 	public StandaloneDispatcher createDispatcher(
 			@Nonnull RpcService rpcService,
-			@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
+			@Nonnull PartialDispatcherFactoryServices dispatcherFactoryServices) throws Exception {
 		// create the default dispatcher
 		return new StandaloneDispatcher(
 			rpcService,

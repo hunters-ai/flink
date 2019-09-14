@@ -22,7 +22,7 @@ import org.apache.flink.runtime.clusterframework.ApplicationStatus;
 import org.apache.flink.runtime.concurrent.FutureUtils;
 import org.apache.flink.runtime.dispatcher.Dispatcher;
 import org.apache.flink.runtime.dispatcher.DispatcherFactory;
-import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
+import org.apache.flink.runtime.dispatcher.PartialDispatcherFactoryServices;
 import org.apache.flink.runtime.dispatcher.DispatcherGateway;
 import org.apache.flink.runtime.leaderretrieval.LeaderRetrievalService;
 import org.apache.flink.runtime.rpc.RpcService;
@@ -49,7 +49,7 @@ class DispatcherRunnerImpl implements DispatcherRunner {
 	DispatcherRunnerImpl(
 		@Nonnull DispatcherFactory dispatcherFactory,
 		@Nonnull RpcService rpcService,
-		@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
+		@Nonnull PartialDispatcherFactoryServices dispatcherFactoryServices) throws Exception {
 		this.dispatcher = dispatcherFactory.createDispatcher(
 			rpcService,
 			dispatcherFactoryServices);

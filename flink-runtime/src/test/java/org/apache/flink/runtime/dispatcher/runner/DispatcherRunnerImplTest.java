@@ -24,7 +24,7 @@ import org.apache.flink.runtime.blob.BlobServer;
 import org.apache.flink.runtime.blob.VoidBlobStore;
 import org.apache.flink.runtime.dispatcher.Dispatcher;
 import org.apache.flink.runtime.dispatcher.DispatcherFactory;
-import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
+import org.apache.flink.runtime.dispatcher.PartialDispatcherFactoryServices;
 import org.apache.flink.runtime.dispatcher.DispatcherGateway;
 import org.apache.flink.runtime.dispatcher.DispatcherServices;
 import org.apache.flink.runtime.dispatcher.JobManagerRunnerFactory;
@@ -107,7 +107,7 @@ public class DispatcherRunnerImplTest extends TestLogger {
 			.setDispatcherLeaderRetriever(dispatcherLeaderRetriever)
 			.build()) {
 
-			final DispatcherFactoryServices dispatcherFactoryServices = new DispatcherFactoryServices(
+			final PartialDispatcherFactoryServices dispatcherFactoryServices = new PartialDispatcherFactoryServices(
 				configuration,
 				highAvailabilityServices,
 				() -> new CompletableFuture<>(),
@@ -169,7 +169,7 @@ public class DispatcherRunnerImplTest extends TestLogger {
 		}
 
 		@Override
-		public Dispatcher createDispatcher(@Nonnull RpcService rpcService, @Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
+		public Dispatcher createDispatcher(@Nonnull RpcService rpcService, @Nonnull PartialDispatcherFactoryServices dispatcherFactoryServices) throws Exception {
 			return new StandaloneDispatcher(rpcService, getEndpointId(), DispatcherServices.from(dispatcherFactoryServices, jobManagerRunnerFactory));
 		}
 	}

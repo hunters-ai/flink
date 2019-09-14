@@ -31,9 +31,9 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * {@link DispatcherFactory} services container.
+ * Partial {@link DispatcherFactory} services container.
  */
-public class DispatcherFactoryServices {
+public class PartialDispatcherFactoryServices {
 
 	@Nonnull
 	private final Configuration configuration;
@@ -65,7 +65,7 @@ public class DispatcherFactoryServices {
 	@Nullable
 	private final String metricQueryServiceAddress;
 
-	public DispatcherFactoryServices(
+	public PartialDispatcherFactoryServices(
 			@Nonnull Configuration configuration,
 			@Nonnull HighAvailabilityServices highAvailabilityServices,
 			@Nonnull GatewayRetriever<ResourceManagerGateway> resourceManagerGatewayRetriever,

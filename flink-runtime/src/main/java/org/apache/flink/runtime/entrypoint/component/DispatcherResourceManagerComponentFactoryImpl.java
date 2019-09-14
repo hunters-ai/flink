@@ -27,10 +27,10 @@ import org.apache.flink.runtime.blob.BlobServer;
 import org.apache.flink.runtime.clusterframework.types.ResourceID;
 import org.apache.flink.runtime.concurrent.FutureUtils;
 import org.apache.flink.runtime.dispatcher.ArchivedExecutionGraphStore;
-import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
 import org.apache.flink.runtime.dispatcher.DispatcherGateway;
 import org.apache.flink.runtime.dispatcher.DispatcherId;
 import org.apache.flink.runtime.dispatcher.HistoryServerArchivist;
+import org.apache.flink.runtime.dispatcher.PartialDispatcherFactoryServices;
 import org.apache.flink.runtime.dispatcher.runner.DispatcherRunner;
 import org.apache.flink.runtime.dispatcher.runner.DispatcherRunnerFactory;
 import org.apache.flink.runtime.entrypoint.ClusterInformation;
@@ -181,7 +181,7 @@ public class DispatcherResourceManagerComponentFactoryImpl implements Dispatcher
 
 			final HistoryServerArchivist historyServerArchivist = HistoryServerArchivist.createHistoryServerArchivist(configuration, webMonitorEndpoint);
 
-			final DispatcherFactoryServices dispatcherFactoryServices = new DispatcherFactoryServices(
+			final PartialDispatcherFactoryServices dispatcherFactoryServices = new PartialDispatcherFactoryServices(
 				configuration,
 				highAvailabilityServices,
 				resourceManagerGatewayRetriever,

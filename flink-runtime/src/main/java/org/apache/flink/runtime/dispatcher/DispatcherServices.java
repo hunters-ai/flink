@@ -33,7 +33,7 @@ import javax.annotation.Nullable;
 /**
  * {@link Dispatcher} services container.
  */
-public class DispatcherServices extends DispatcherFactoryServices {
+public class DispatcherServices extends PartialDispatcherFactoryServices {
 
 	@Nonnull
 	private final JobManagerRunnerFactory jobManagerRunnerFactory;
@@ -69,7 +69,7 @@ public class DispatcherServices extends DispatcherFactoryServices {
 		return jobManagerRunnerFactory;
 	}
 
-	public static DispatcherServices from(@Nonnull DispatcherFactoryServices dispatcherFactoryServices, @Nonnull JobManagerRunnerFactory jobManagerRunnerFactory) {
+	public static DispatcherServices from(@Nonnull PartialDispatcherFactoryServices dispatcherFactoryServices, @Nonnull JobManagerRunnerFactory jobManagerRunnerFactory) {
 		return new DispatcherServices(
 			dispatcherFactoryServices.getConfiguration(),
 			dispatcherFactoryServices.getHighAvailabilityServices(),

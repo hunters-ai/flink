@@ -31,7 +31,7 @@ public enum SessionDispatcherFactory implements DispatcherFactory {
 	@Override
 	public StandaloneDispatcher createDispatcher(
 			@Nonnull RpcService rpcService,
-			@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
+			@Nonnull PartialDispatcherFactoryServices dispatcherFactoryServices) throws Exception {
 		// create the default dispatcher
 		return new StandaloneDispatcher(
 			rpcService,

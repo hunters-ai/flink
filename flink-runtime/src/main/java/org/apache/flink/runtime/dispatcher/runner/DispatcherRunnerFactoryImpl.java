@@ -19,7 +19,7 @@
 package org.apache.flink.runtime.dispatcher.runner;
 
 import org.apache.flink.runtime.dispatcher.DispatcherFactory;
-import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
+import org.apache.flink.runtime.dispatcher.PartialDispatcherFactoryServices;
 import org.apache.flink.runtime.dispatcher.StandaloneDispatcher;
 import org.apache.flink.runtime.jobmanager.JobGraphStoreFactory;
 import org.apache.flink.runtime.leaderelection.LeaderElectionService;
@@ -46,7 +46,7 @@ public class DispatcherRunnerFactoryImpl implements DispatcherRunnerFactory {
 			JobGraphStoreFactory jobGraphStoreFactory,
 			Executor ioExecutor,
 			RpcService rpcService,
-			DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
+			PartialDispatcherFactoryServices dispatcherFactoryServices) throws Exception {
 		return new DispatcherRunnerImpl(dispatcherFactory, rpcService, dispatcherFactoryServices);
 	}
 }
