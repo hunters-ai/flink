@@ -22,7 +22,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.blob.BlobServer;
 import org.apache.flink.runtime.heartbeat.HeartbeatServices;
 import org.apache.flink.runtime.highavailability.HighAvailabilityServices;
-import org.apache.flink.runtime.jobmanager.JobGraphStore;
+import org.apache.flink.runtime.jobmanager.JobGraphWriter;
 import org.apache.flink.runtime.metrics.groups.JobManagerMetricGroup;
 import org.apache.flink.runtime.resourcemanager.ResourceManagerGateway;
 import org.apache.flink.runtime.rpc.FatalErrorHandler;
@@ -37,7 +37,7 @@ import javax.annotation.Nullable;
 public class DispatcherFactoryServices extends PartialDispatcherFactoryServices {
 
 	@Nonnull
-	private final JobGraphStore jobGraphStore;
+	private final JobGraphWriter jobGraphWriter;
 
 	public DispatcherFactoryServices(
 			@Nonnull Configuration configuration,
@@ -50,7 +50,7 @@ public class DispatcherFactoryServices extends PartialDispatcherFactoryServices 
 			@Nonnull FatalErrorHandler fatalErrorHandler,
 			@Nonnull HistoryServerArchivist historyServerArchivist,
 			@Nullable String metricQueryServiceAddress,
-			@Nonnull JobGraphStore jobGraphStore) {
+			@Nonnull JobGraphWriter jobGraphWriter) {
 		super(
 			configuration,
 			highAvailabilityServices,
@@ -62,15 +62,15 @@ public class DispatcherFactoryServices extends PartialDispatcherFactoryServices 
 			fatalErrorHandler,
 			historyServerArchivist,
 			metricQueryServiceAddress);
-		this.jobGraphStore = jobGraphStore;
+		this.jobGraphWriter = jobGraphWriter;
 	}
 
 	@Nonnull
-	public JobGraphStore getJobGraphStore() {
-		return jobGraphStore;
+	public JobGraphWriter getJobGraphWriter() {
+		return jobGraphWriter;
 	}
 
-	public static DispatcherFactoryServices complete(PartialDispatcherFactoryServices partialDispatcherFactoryServices, JobGraphStore jobGraphStore) {
+	public static DispatcherFactoryServices complete(PartialDispatcherFactoryServices partialDispatcherFactoryServices, JobGraphWriter jobGraphWriter) {
 		return new DispatcherFactoryServices(
 			partialDispatcherFactoryServices.getConfiguration(),
 			partialDispatcherFactoryServices.getHighAvailabilityServices(),
@@ -82,6 +82,6 @@ public class DispatcherFactoryServices extends PartialDispatcherFactoryServices 
 			partialDispatcherFactoryServices.getFatalErrorHandler(),
 			partialDispatcherFactoryServices.getHistoryServerArchivist(),
 			partialDispatcherFactoryServices.getMetricQueryServiceAddress(),
-			jobGraphStore);
+			jobGraphWriter);
 	}
 }

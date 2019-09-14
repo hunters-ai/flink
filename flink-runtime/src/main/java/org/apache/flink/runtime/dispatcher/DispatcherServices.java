@@ -22,7 +22,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.runtime.blob.BlobServer;
 import org.apache.flink.runtime.heartbeat.HeartbeatServices;
 import org.apache.flink.runtime.highavailability.HighAvailabilityServices;
-import org.apache.flink.runtime.jobmanager.JobGraphStore;
+import org.apache.flink.runtime.jobmanager.JobGraphWriter;
 import org.apache.flink.runtime.metrics.groups.JobManagerMetricGroup;
 import org.apache.flink.runtime.resourcemanager.ResourceManagerGateway;
 import org.apache.flink.runtime.rpc.FatalErrorHandler;
@@ -50,7 +50,7 @@ public class DispatcherServices extends DispatcherFactoryServices {
 			@Nonnull FatalErrorHandler fatalErrorHandler,
 			@Nonnull HistoryServerArchivist historyServerArchivist,
 			@Nullable String metricQueryServiceAddress,
-			@Nonnull JobGraphStore jobGraphStore,
+			@Nonnull JobGraphWriter jobGraphWriter,
 			@Nonnull JobManagerRunnerFactory jobManagerRunnerFactory) {
 		super(
 			configuration,
@@ -63,7 +63,7 @@ public class DispatcherServices extends DispatcherFactoryServices {
 			fatalErrorHandler,
 			historyServerArchivist,
 			metricQueryServiceAddress,
-			jobGraphStore);
+			jobGraphWriter);
 		this.jobManagerRunnerFactory = jobManagerRunnerFactory;
 	}
 
@@ -84,7 +84,7 @@ public class DispatcherServices extends DispatcherFactoryServices {
 			dispatcherFactoryServices.getFatalErrorHandler(),
 			dispatcherFactoryServices.getHistoryServerArchivist(),
 			dispatcherFactoryServices.getMetricQueryServiceAddress(),
-			dispatcherFactoryServices.getJobGraphStore(),
+			dispatcherFactoryServices.getJobGraphWriter(),
 			jobManagerRunnerFactory);
 	}
 }
