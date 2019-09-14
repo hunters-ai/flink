@@ -18,9 +18,12 @@
 
 package org.apache.flink.runtime.dispatcher;
 
+import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.rpc.RpcService;
 
 import javax.annotation.Nonnull;
+
+import java.util.Collection;
 
 /**
  * {@link DispatcherFactory} which creates a {@link StandaloneDispatcher}.
@@ -31,11 +34,13 @@ public enum SessionDispatcherFactory implements DispatcherFactory {
 	@Override
 	public StandaloneDispatcher createDispatcher(
 			@Nonnull RpcService rpcService,
+			@Nonnull Collection<JobGraph> recoveredJobs,
 			@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
 		// create the default dispatcher
 		return new StandaloneDispatcher(
 			rpcService,
 			getEndpointId(),
+			recoveredJobs,
 			DispatcherServices.from(dispatcherFactoryServices, DefaultJobManagerRunnerFactory.INSTANCE));
 	}
 }

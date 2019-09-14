@@ -32,6 +32,7 @@ import javax.annotation.Nonnull;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -52,6 +53,7 @@ class DispatcherRunnerImpl implements DispatcherRunner {
 		@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
 		this.dispatcher = dispatcherFactory.createDispatcher(
 			rpcService,
+			Collections.emptyList(),
 			dispatcherFactoryServices);
 		this.leaderRetrievalService = dispatcherFactoryServices.getHighAvailabilityServices().getDispatcherLeaderRetriever();
 		this.leaderRetriever = new LeaderRetriever();

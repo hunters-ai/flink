@@ -55,6 +55,7 @@ import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 
+import java.util.Collection;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
@@ -170,8 +171,15 @@ public class DispatcherRunnerImplTest extends TestLogger {
 		}
 
 		@Override
-		public Dispatcher createDispatcher(@Nonnull RpcService rpcService, @Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
-			return new StandaloneDispatcher(rpcService, getEndpointId(), DispatcherServices.from(dispatcherFactoryServices, jobManagerRunnerFactory));
+		public Dispatcher createDispatcher(
+			@Nonnull RpcService rpcService,
+			@Nonnull Collection<JobGraph> recoveredJobs,
+			@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
+			return new StandaloneDispatcher(
+				rpcService,
+				getEndpointId(),
+				recoveredJobs,
+				DispatcherServices.from(dispatcherFactoryServices, jobManagerRunnerFactory));
 		}
 	}
 }
