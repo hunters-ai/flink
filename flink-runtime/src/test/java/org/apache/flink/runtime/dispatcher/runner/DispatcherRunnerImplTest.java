@@ -24,7 +24,7 @@ import org.apache.flink.runtime.blob.BlobServer;
 import org.apache.flink.runtime.blob.VoidBlobStore;
 import org.apache.flink.runtime.dispatcher.Dispatcher;
 import org.apache.flink.runtime.dispatcher.DispatcherFactory;
-import org.apache.flink.runtime.dispatcher.PartialDispatcherFactoryServices;
+import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
 import org.apache.flink.runtime.dispatcher.DispatcherGateway;
 import org.apache.flink.runtime.dispatcher.DispatcherServices;
 import org.apache.flink.runtime.dispatcher.JobManagerRunnerFactory;
@@ -107,7 +107,7 @@ public class DispatcherRunnerImplTest extends TestLogger {
 			.setDispatcherLeaderRetriever(dispatcherLeaderRetriever)
 			.build()) {
 
-			final PartialDispatcherFactoryServices dispatcherFactoryServices = new PartialDispatcherFactoryServices(
+			final DispatcherFactoryServices dispatcherFactoryServices = new DispatcherFactoryServices(
 				configuration,
 				highAvailabilityServices,
 				() -> new CompletableFuture<>(),
@@ -117,7 +117,8 @@ public class DispatcherRunnerImplTest extends TestLogger {
 				new MemoryArchivedExecutionGraphStore(),
 				fatalErrorHandler,
 				VoidHistoryServerArchivist.INSTANCE,
-				null);
+				null,
+				highAvailabilityServices.getJobGraphStore());
 
 			final TestingJobManagerRunnerFactory jobManagerRunnerFactory = new TestingJobManagerRunnerFactory(1);
 			try (final DispatcherRunnerImpl dispatcherRunner = new DispatcherRunnerImpl(
@@ -169,7 +170,7 @@ public class DispatcherRunnerImplTest extends TestLogger {
 		}
 
 		@Override
-		public Dispatcher createDispatcher(@Nonnull RpcService rpcService, @Nonnull PartialDispatcherFactoryServices dispatcherFactoryServices) throws Exception {
+		public Dispatcher createDispatcher(@Nonnull RpcService rpcService, @Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
 			return new StandaloneDispatcher(rpcService, getEndpointId(), DispatcherServices.from(dispatcherFactoryServices, jobManagerRunnerFactory));
 		}
 	}

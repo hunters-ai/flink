@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -32,14 +32,14 @@ import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 
 /**
- * {@link Dispatcher} services container.
+ * {@link DispatcherFactory} services container.
  */
-public class DispatcherServices extends DispatcherFactoryServices {
+public class DispatcherFactoryServices extends PartialDispatcherFactoryServices {
 
 	@Nonnull
-	private final JobManagerRunnerFactory jobManagerRunnerFactory;
+	private final JobGraphStore jobGraphStore;
 
-	public DispatcherServices(
+	public DispatcherFactoryServices(
 			@Nonnull Configuration configuration,
 			@Nonnull HighAvailabilityServices highAvailabilityServices,
 			@Nonnull GatewayRetriever<ResourceManagerGateway> resourceManagerGatewayRetriever,
@@ -50,8 +50,7 @@ public class DispatcherServices extends DispatcherFactoryServices {
 			@Nonnull FatalErrorHandler fatalErrorHandler,
 			@Nonnull HistoryServerArchivist historyServerArchivist,
 			@Nullable String metricQueryServiceAddress,
-			@Nonnull JobGraphStore jobGraphStore,
-			@Nonnull JobManagerRunnerFactory jobManagerRunnerFactory) {
+			@Nonnull JobGraphStore jobGraphStore) {
 		super(
 			configuration,
 			highAvailabilityServices,
@@ -62,29 +61,27 @@ public class DispatcherServices extends DispatcherFactoryServices {
 			archivedExecutionGraphStore,
 			fatalErrorHandler,
 			historyServerArchivist,
-			metricQueryServiceAddress,
-			jobGraphStore);
-		this.jobManagerRunnerFactory = jobManagerRunnerFactory;
+			metricQueryServiceAddress);
+		this.jobGraphStore = jobGraphStore;
 	}
 
 	@Nonnull
-	JobManagerRunnerFactory getJobManagerRunnerFactory() {
-		return jobManagerRunnerFactory;
+	public JobGraphStore getJobGraphStore() {
+		return jobGraphStore;
 	}
 
-	public static DispatcherServices from(@Nonnull DispatcherFactoryServices dispatcherFactoryServices, @Nonnull JobManagerRunnerFactory jobManagerRunnerFactory) {
-		return new DispatcherServices(
-			dispatcherFactoryServices.getConfiguration(),
-			dispatcherFactoryServices.getHighAvailabilityServices(),
-			dispatcherFactoryServices.getResourceManagerGatewayRetriever(),
-			dispatcherFactoryServices.getBlobServer(),
-			dispatcherFactoryServices.getHeartbeatServices(),
-			dispatcherFactoryServices.getJobManagerMetricGroup(),
-			dispatcherFactoryServices.getArchivedExecutionGraphStore(),
-			dispatcherFactoryServices.getFatalErrorHandler(),
-			dispatcherFactoryServices.getHistoryServerArchivist(),
-			dispatcherFactoryServices.getMetricQueryServiceAddress(),
-			dispatcherFactoryServices.getJobGraphStore(),
-			jobManagerRunnerFactory);
+	public static DispatcherFactoryServices complete(PartialDispatcherFactoryServices partialDispatcherFactoryServices, JobGraphStore jobGraphStore) {
+		return new DispatcherFactoryServices(
+			partialDispatcherFactoryServices.getConfiguration(),
+			partialDispatcherFactoryServices.getHighAvailabilityServices(),
+			partialDispatcherFactoryServices.getResourceManagerGatewayRetriever(),
+			partialDispatcherFactoryServices.getBlobServer(),
+			partialDispatcherFactoryServices.getHeartbeatServices(),
+			partialDispatcherFactoryServices.getJobManagerMetricGroup(),
+			partialDispatcherFactoryServices.getArchivedExecutionGraphStore(),
+			partialDispatcherFactoryServices.getFatalErrorHandler(),
+			partialDispatcherFactoryServices.getHistoryServerArchivist(),
+			partialDispatcherFactoryServices.getMetricQueryServiceAddress(),
+			jobGraphStore);
 	}
 }

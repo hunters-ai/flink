@@ -42,7 +42,7 @@ public class JobDispatcherFactory implements DispatcherFactory {
 	@Override
 	public MiniDispatcher createDispatcher(
 			@Nonnull RpcService rpcService,
-			@Nonnull PartialDispatcherFactoryServices dispatcherFactoryServices) throws Exception {
+			@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
 		final Configuration configuration = dispatcherFactoryServices.getConfiguration();
 		final JobGraph jobGraph = jobGraphRetriever.retrieveJobGraph(configuration);
 

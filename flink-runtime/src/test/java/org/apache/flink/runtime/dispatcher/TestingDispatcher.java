@@ -71,6 +71,7 @@ class TestingDispatcher extends Dispatcher {
 				fatalErrorHandler,
 				VoidHistoryServerArchivist.INSTANCE,
 				metricQueryServiceAddress,
+				highAvailabilityServices.getJobGraphStore(),
 				jobManagerRunnerFactory),
 			highAvailabilityServices.getJobGraphStore());
 

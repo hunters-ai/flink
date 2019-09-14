@@ -26,7 +26,7 @@ import org.apache.flink.runtime.blob.BlobServer;
 import org.apache.flink.runtime.blob.BlobUtils;
 import org.apache.flink.runtime.blob.PermanentBlobKey;
 import org.apache.flink.runtime.clusterframework.ApplicationStatus;
-import org.apache.flink.runtime.dispatcher.PartialDispatcherFactoryServices;
+import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
 import org.apache.flink.runtime.dispatcher.DispatcherGateway;
 import org.apache.flink.runtime.dispatcher.MemoryArchivedExecutionGraphStore;
 import org.apache.flink.runtime.dispatcher.SessionDispatcherFactory;
@@ -138,7 +138,7 @@ public class ZooKeeperDispatcherRunnerImplTest extends TestLogger {
 				.setJobMasterLeaderRetrieverFunction(jobId -> ZooKeeperUtils.createLeaderRetrievalService(client, configuration))
 				.build()) {
 
-			final PartialDispatcherFactoryServices dispatcherFactoryServices = new PartialDispatcherFactoryServices(
+			final DispatcherFactoryServices dispatcherFactoryServices = new DispatcherFactoryServices(
 				configuration,
 				highAvailabilityServices,
 				() -> new CompletableFuture<>(),
@@ -148,7 +148,8 @@ public class ZooKeeperDispatcherRunnerImplTest extends TestLogger {
 				new MemoryArchivedExecutionGraphStore(),
 				fatalErrorHandler,
 				VoidHistoryServerArchivist.INSTANCE,
-				null);
+				null,
+				highAvailabilityServices.getJobGraphStore());
 
 			final JobGraph jobGraph = createJobGraphWithBlobs();
 
