@@ -7,7 +7,7 @@
  * "License"); you may not use this file except in compliance
  * with the License.  You may obtain a copy of the License at
  *
- *     http://www.apache.org/licenses/LICENSE-2.0
+ *    http://www.apache.org/licenses/LICENSE-2.0
  *
  * Unless required by applicable law or agreed to in writing, software
  * distributed under the License is distributed on an "AS IS" BASIS,
@@ -20,7 +20,6 @@ package org.apache.flink.runtime.dispatcher.runner;
 
 import org.apache.flink.runtime.dispatcher.DispatcherFactory;
 import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
-import org.apache.flink.runtime.dispatcher.StandaloneDispatcher;
 import org.apache.flink.runtime.jobmanager.JobGraphStoreFactory;
 import org.apache.flink.runtime.leaderelection.LeaderElectionService;
 import org.apache.flink.runtime.rpc.FatalErrorHandler;
@@ -29,24 +28,39 @@ import org.apache.flink.runtime.rpc.RpcService;
 import java.util.concurrent.Executor;
 
 /**
- * Factory which creates a {@link DispatcherRunnerImpl} which runs a {@link StandaloneDispatcher}.
+ * {@link DispatcherRunnerFactory} implementation which creates {@link DispatcherRunnerImplNG}
+ * instances.
  */
-public class DispatcherRunnerFactoryImpl implements DispatcherRunnerFactory {
-
+public class DispatcherRunnerImplNGFactory implements DispatcherRunnerFactory {
 	private final DispatcherFactory dispatcherFactory;
 
-	public DispatcherRunnerFactoryImpl(DispatcherFactory dispatcherFactory) {
+	public DispatcherRunnerImplNGFactory(DispatcherFactory dispatcherFactory) {
 		this.dispatcherFactory = dispatcherFactory;
 	}
 
 	@Override
-	public DispatcherRunnerImpl createDispatcherRunner(
+	public DispatcherRunner createDispatcherRunner(
 			LeaderElectionService leaderElectionService,
 			FatalErrorHandler fatalErrorHandler,
 			JobGraphStoreFactory jobGraphStoreFactory,
 			Executor ioExecutor,
 			RpcService rpcService,
 			DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
-		return new DispatcherRunnerImpl(dispatcherFactory, rpcService, dispatcherFactoryServices);
+
+		final DispatcherLeaderProcessImpl.DispatcherServiceFactory dispatcherServiceFactory = new DispatcherServiceImplFactory(
+			dispatcherFactory,
+			rpcService,
+			dispatcherFactoryServices);
+
+		final DispatcherLeaderProcessFactory dispatcherLeaderProcessFactory = new DispatcherLeaderProcessImplFactory(
+			dispatcherServiceFactory,
+			jobGraphStoreFactory,
+			ioExecutor,
+			fatalErrorHandler);
+
+		return new DispatcherRunnerImplNG(
+			leaderElectionService,
+			fatalErrorHandler,
+			dispatcherLeaderProcessFactory);
 	}
 }
