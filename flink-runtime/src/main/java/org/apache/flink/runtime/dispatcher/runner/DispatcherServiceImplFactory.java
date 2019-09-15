@@ -21,6 +21,7 @@ package org.apache.flink.runtime.dispatcher.runner;
 import org.apache.flink.runtime.dispatcher.Dispatcher;
 import org.apache.flink.runtime.dispatcher.DispatcherFactory;
 import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
+import org.apache.flink.runtime.dispatcher.DispatcherId;
 import org.apache.flink.runtime.dispatcher.PartialDispatcherFactoryServices;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobmanager.JobGraphWriter;
@@ -50,11 +51,15 @@ class DispatcherServiceImplFactory implements DispatcherLeaderProcessImpl.Dispat
 	}
 
 	@Override
-	public DispatcherLeaderProcessImpl.DispatcherService create(Collection<JobGraph> recoveredJobs, JobGraphWriter jobGraphWriter) {
+	public DispatcherLeaderProcessImpl.DispatcherService create(
+			DispatcherId fencingToken,
+			Collection<JobGraph> recoveredJobs,
+			JobGraphWriter jobGraphWriter) {
 		final Dispatcher dispatcher;
 		try {
 			dispatcher = dispatcherFactory.createDispatcher(
 				rpcService,
+				fencingToken,
 				recoveredJobs,
 				DispatcherFactoryServices.complete(dispatcherFactoryServices, jobGraphWriter));
 		} catch (Exception e) {

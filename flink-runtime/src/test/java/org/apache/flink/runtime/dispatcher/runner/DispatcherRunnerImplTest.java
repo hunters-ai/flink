@@ -26,6 +26,7 @@ import org.apache.flink.runtime.dispatcher.Dispatcher;
 import org.apache.flink.runtime.dispatcher.DispatcherFactory;
 import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
 import org.apache.flink.runtime.dispatcher.DispatcherGateway;
+import org.apache.flink.runtime.dispatcher.DispatcherId;
 import org.apache.flink.runtime.dispatcher.DispatcherServices;
 import org.apache.flink.runtime.dispatcher.JobManagerRunnerFactory;
 import org.apache.flink.runtime.dispatcher.MemoryArchivedExecutionGraphStore;
@@ -173,11 +174,13 @@ public class DispatcherRunnerImplTest extends TestLogger {
 		@Override
 		public Dispatcher createDispatcher(
 			@Nonnull RpcService rpcService,
+			@Nonnull DispatcherId fencingToken,
 			@Nonnull Collection<JobGraph> recoveredJobs,
 			@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
 			return new StandaloneDispatcher(
 				rpcService,
 				getEndpointId(),
+				fencingToken,
 				recoveredJobs,
 				DispatcherServices.from(dispatcherFactoryServices, jobManagerRunnerFactory));
 		}

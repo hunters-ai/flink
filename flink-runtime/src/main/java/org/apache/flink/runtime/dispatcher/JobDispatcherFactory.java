@@ -44,6 +44,7 @@ public class JobDispatcherFactory implements DispatcherFactory {
 	@Override
 	public MiniDispatcher createDispatcher(
 			@Nonnull RpcService rpcService,
+			@Nonnull DispatcherId fencingToken,
 			@Nonnull Collection<JobGraph> recoveredJobs,
 			@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
 		final Configuration configuration = dispatcherFactoryServices.getConfiguration();
@@ -56,6 +57,7 @@ public class JobDispatcherFactory implements DispatcherFactory {
 		return new MiniDispatcher(
 			rpcService,
 			getEndpointId(),
+			fencingToken,
 			DispatcherServices.from(dispatcherFactoryServices, DefaultJobManagerRunnerFactory.INSTANCE),
 			jobGraph,
 			executionMode);

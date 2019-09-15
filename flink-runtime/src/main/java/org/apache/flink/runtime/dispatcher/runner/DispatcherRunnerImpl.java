@@ -24,6 +24,7 @@ import org.apache.flink.runtime.dispatcher.Dispatcher;
 import org.apache.flink.runtime.dispatcher.DispatcherFactory;
 import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
 import org.apache.flink.runtime.dispatcher.DispatcherGateway;
+import org.apache.flink.runtime.dispatcher.DispatcherId;
 import org.apache.flink.runtime.leaderretrieval.LeaderRetrievalService;
 import org.apache.flink.runtime.rpc.RpcService;
 import org.apache.flink.runtime.webmonitor.retriever.LeaderRetriever;
@@ -53,6 +54,7 @@ class DispatcherRunnerImpl implements DispatcherRunner {
 		@Nonnull DispatcherFactoryServices dispatcherFactoryServices) throws Exception {
 		this.dispatcher = dispatcherFactory.createDispatcher(
 			rpcService,
+			DispatcherId.generate(),
 			Collections.emptyList(),
 			dispatcherFactoryServices);
 		this.leaderRetrievalService = dispatcherFactoryServices.getHighAvailabilityServices().getDispatcherLeaderRetriever();
