@@ -21,7 +21,7 @@ package org.apache.flink.runtime.entrypoint.component;
 import org.apache.flink.annotation.VisibleForTesting;
 import org.apache.flink.runtime.dispatcher.SessionDispatcherFactory;
 import org.apache.flink.runtime.dispatcher.runner.DispatcherRunnerFactory;
-import org.apache.flink.runtime.dispatcher.runner.DispatcherRunnerFactoryImpl;
+import org.apache.flink.runtime.dispatcher.runner.DispatcherRunnerImplNGFactory;
 import org.apache.flink.runtime.resourcemanager.ResourceManagerFactory;
 import org.apache.flink.runtime.rest.SessionRestEndpointFactory;
 
@@ -33,7 +33,7 @@ import javax.annotation.Nonnull;
 public class SessionDispatcherResourceManagerComponentFactory extends DispatcherResourceManagerComponentFactoryImpl {
 
 	public SessionDispatcherResourceManagerComponentFactory(@Nonnull ResourceManagerFactory<?> resourceManagerFactory) {
-		this(new DispatcherRunnerFactoryImpl(SessionDispatcherFactory.INSTANCE), resourceManagerFactory);
+		this(new DispatcherRunnerImplNGFactory(SessionDispatcherFactory.INSTANCE), resourceManagerFactory);
 	}
 
 	@VisibleForTesting

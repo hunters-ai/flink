@@ -19,7 +19,7 @@
 package org.apache.flink.runtime.entrypoint.component;
 
 import org.apache.flink.runtime.dispatcher.JobDispatcherFactory;
-import org.apache.flink.runtime.dispatcher.runner.DispatcherRunnerFactoryImpl;
+import org.apache.flink.runtime.dispatcher.runner.DispatcherRunnerImplNGFactory;
 import org.apache.flink.runtime.resourcemanager.ResourceManagerFactory;
 import org.apache.flink.runtime.rest.JobRestEndpointFactory;
 
@@ -31,6 +31,6 @@ import javax.annotation.Nonnull;
 public class JobDispatcherResourceManagerComponentFactory extends DispatcherResourceManagerComponentFactoryImpl {
 
 	public JobDispatcherResourceManagerComponentFactory(@Nonnull ResourceManagerFactory<?> resourceManagerFactory, @Nonnull JobGraphRetriever jobGraphRetriever) {
-		super(new DispatcherRunnerFactoryImpl(new JobDispatcherFactory(jobGraphRetriever)), resourceManagerFactory, JobRestEndpointFactory.INSTANCE);
+		super(new DispatcherRunnerImplNGFactory(new JobDispatcherFactory(jobGraphRetriever)), resourceManagerFactory, JobRestEndpointFactory.INSTANCE);
 	}
 }
