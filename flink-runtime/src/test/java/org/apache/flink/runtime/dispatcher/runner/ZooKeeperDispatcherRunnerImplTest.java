@@ -26,9 +26,9 @@ import org.apache.flink.runtime.blob.BlobServer;
 import org.apache.flink.runtime.blob.BlobUtils;
 import org.apache.flink.runtime.blob.PermanentBlobKey;
 import org.apache.flink.runtime.clusterframework.ApplicationStatus;
-import org.apache.flink.runtime.dispatcher.DispatcherFactoryServices;
 import org.apache.flink.runtime.dispatcher.DispatcherGateway;
 import org.apache.flink.runtime.dispatcher.MemoryArchivedExecutionGraphStore;
+import org.apache.flink.runtime.dispatcher.PartialDispatcherFactoryServices;
 import org.apache.flink.runtime.dispatcher.SessionDispatcherFactory;
 import org.apache.flink.runtime.dispatcher.VoidHistoryServerArchivist;
 import org.apache.flink.runtime.heartbeat.TestingHeartbeatServices;
@@ -38,24 +38,26 @@ import org.apache.flink.runtime.highavailability.TestingHighAvailabilityServices
 import org.apache.flink.runtime.highavailability.zookeeper.ZooKeeperRunningJobsRegistry;
 import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobgraph.JobVertex;
+import org.apache.flink.runtime.jobmanager.JobGraphStoreFactory;
 import org.apache.flink.runtime.jobmanager.ZooKeeperJobGraphStore;
 import org.apache.flink.runtime.jobmaster.JobResult;
 import org.apache.flink.runtime.leaderelection.TestingLeaderElectionService;
 import org.apache.flink.runtime.leaderretrieval.SettableLeaderRetrievalService;
 import org.apache.flink.runtime.metrics.groups.UnregisteredMetricGroups;
 import org.apache.flink.runtime.rpc.TestingRpcService;
+import org.apache.flink.runtime.testingUtils.TestingUtils;
 import org.apache.flink.runtime.testtasks.NoOpInvokable;
 import org.apache.flink.runtime.testutils.CommonTestUtils;
 import org.apache.flink.runtime.util.TestingFatalErrorHandler;
 import org.apache.flink.runtime.util.ZooKeeperUtils;
 import org.apache.flink.runtime.zookeeper.ZooKeeperResource;
+import org.apache.flink.util.ExceptionUtils;
 import org.apache.flink.util.TestLogger;
 
 import org.apache.curator.framework.CuratorFramework;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.ClassRule;
-import org.junit.Ignore;
 import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
@@ -123,7 +125,6 @@ public class ZooKeeperDispatcherRunnerImplTest extends TestLogger {
 	 * See FLINK-11665.
 	 */
 	@Test
-	@Ignore
 	public void testResourceCleanupUnderLeadershipChange() throws Exception {
 		final TestingRpcService rpcService = new TestingRpcService();
 		final TestingLeaderElectionService dispatcherLeaderElectionService = new TestingLeaderElectionService();
@@ -131,29 +132,35 @@ public class ZooKeeperDispatcherRunnerImplTest extends TestLogger {
 
 		final CuratorFramework client = ZooKeeperUtils.startCuratorFramework(configuration);
 		try (final TestingHighAvailabilityServices highAvailabilityServices = new TestingHighAvailabilityServicesBuilder()
-				.setJobGraphStore(ZooKeeperUtils.createJobGraphs(client, configuration))
 				.setRunningJobsRegistry(new ZooKeeperRunningJobsRegistry(client, configuration))
 				.setDispatcherLeaderElectionService(dispatcherLeaderElectionService)
 				.setDispatcherLeaderRetriever(dispatcherLeaderRetriever)
 				.setJobMasterLeaderRetrieverFunction(jobId -> ZooKeeperUtils.createLeaderRetrievalService(client, configuration))
 				.build()) {
 
-			final DispatcherFactoryServices dispatcherFactoryServices = new DispatcherFactoryServices(
+			final PartialDispatcherFactoryServices partialDispatcherFactoryServices = new PartialDispatcherFactoryServices(
 				configuration,
 				highAvailabilityServices,
-				() -> new CompletableFuture<>(),
+				CompletableFuture::new,
 				blobServer,
 				new TestingHeartbeatServices(),
 				UnregisteredMetricGroups.createUnregisteredJobManagerMetricGroup(),
 				new MemoryArchivedExecutionGraphStore(),
 				fatalErrorHandler,
 				VoidHistoryServerArchivist.INSTANCE,
-				null,
-				highAvailabilityServices.getJobGraphStore());
+				null);
 
 			final JobGraph jobGraph = createJobGraphWithBlobs();
 
-			try (final DispatcherRunnerImpl dispatcherRunner = new DispatcherRunnerImpl(SessionDispatcherFactory.INSTANCE, rpcService, dispatcherFactoryServices)) {
+			final DispatcherRunnerImplNGFactory dispatcherRunnerImplNGFactory = new DispatcherRunnerImplNGFactory(SessionDispatcherFactory.INSTANCE);
+
+			try (final DispatcherRunner dispatcherRunner = createDispatcherRunner(
+				rpcService,
+				dispatcherLeaderElectionService,
+				() -> createZooKeeperJobGraphStore(client),
+				partialDispatcherFactoryServices,
+				dispatcherRunnerImplNGFactory)) {
+
 				// initial run
 				DispatcherGateway dispatcherGateway = grantLeadership(dispatcherLeaderElectionService, dispatcherLeaderRetriever, dispatcherRunner);
 
@@ -179,7 +186,7 @@ public class ZooKeeperDispatcherRunnerImplTest extends TestLogger {
 				dispatcherLeaderElectionService.notLeader();
 
 				// check that the job has been removed from ZooKeeper
-				final ZooKeeperJobGraphStore submittedJobGraphStore = ZooKeeperUtils.createJobGraphs(client, configuration);
+				final ZooKeeperJobGraphStore submittedJobGraphStore = createZooKeeperJobGraphStore(client);
 
 				CommonTestUtils.waitUntilCondition(() -> submittedJobGraphStore.getJobIds().isEmpty(), Deadline.fromNow(VERIFICATION_TIMEOUT), 20L);
 			}
@@ -192,7 +199,31 @@ public class ZooKeeperDispatcherRunnerImplTest extends TestLogger {
 		assertThat(clusterHaStorageDir.listFiles(), is(emptyArray()));
 	}
 
-	private DispatcherGateway grantLeadership(TestingLeaderElectionService dispatcherLeaderElectionService, SettableLeaderRetrievalService dispatcherLeaderRetriever, DispatcherRunnerImpl dispatcherRunner) throws InterruptedException, java.util.concurrent.ExecutionException {
+	private DispatcherRunner createDispatcherRunner(
+			TestingRpcService rpcService,
+			TestingLeaderElectionService dispatcherLeaderElectionService,
+			JobGraphStoreFactory jobGraphStoreFactory,
+			PartialDispatcherFactoryServices partialDispatcherFactoryServices,
+			DispatcherRunnerFactory dispatcherRunnerFactory) throws Exception {
+		return dispatcherRunnerFactory.createDispatcherRunner(
+				dispatcherLeaderElectionService,
+				fatalErrorHandler,
+				jobGraphStoreFactory,
+				TestingUtils.defaultExecutor(),
+				rpcService,
+				partialDispatcherFactoryServices);
+	}
+
+	private ZooKeeperJobGraphStore createZooKeeperJobGraphStore(CuratorFramework client) {
+		try {
+			return ZooKeeperUtils.createJobGraphs(client, configuration);
+		} catch (Exception e) {
+			ExceptionUtils.rethrow(e);
+			return null;
+		}
+	}
+
+	private DispatcherGateway grantLeadership(TestingLeaderElectionService dispatcherLeaderElectionService, SettableLeaderRetrievalService dispatcherLeaderRetriever, DispatcherRunner dispatcherRunner) throws InterruptedException, java.util.concurrent.ExecutionException {
 		final UUID leaderSessionId = UUID.randomUUID();
 		dispatcherLeaderElectionService.isLeader(leaderSessionId).get();
 		// TODO: Remove once runner properly works
