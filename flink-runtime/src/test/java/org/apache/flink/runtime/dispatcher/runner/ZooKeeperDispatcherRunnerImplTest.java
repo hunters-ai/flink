@@ -45,6 +45,7 @@ import org.apache.flink.runtime.leaderelection.TestingLeaderElectionService;
 import org.apache.flink.runtime.leaderretrieval.SettableLeaderRetrievalService;
 import org.apache.flink.runtime.metrics.groups.UnregisteredMetricGroups;
 import org.apache.flink.runtime.rpc.TestingRpcService;
+import org.apache.flink.runtime.rpc.TestingRpcServiceResource;
 import org.apache.flink.runtime.testingUtils.TestingUtils;
 import org.apache.flink.runtime.testtasks.NoOpInvokable;
 import org.apache.flink.runtime.testutils.CommonTestUtils;
@@ -62,6 +63,8 @@ import org.junit.Test;
 import org.junit.rules.TemporaryFolder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nonnull;
 
 import java.io.File;
 import java.io.IOException;
@@ -89,6 +92,9 @@ public class ZooKeeperDispatcherRunnerImplTest extends TestLogger {
 
 	@ClassRule
 	public static TemporaryFolder temporaryFolder = new TemporaryFolder();
+
+	@ClassRule
+	public static TestingRpcServiceResource testingRpcServiceResource = new TestingRpcServiceResource();
 
 	private BlobServer blobServer;
 
@@ -126,12 +132,12 @@ public class ZooKeeperDispatcherRunnerImplTest extends TestLogger {
 	 */
 	@Test
 	public void testResourceCleanupUnderLeadershipChange() throws Exception {
-		final TestingRpcService rpcService = new TestingRpcService();
+		final TestingRpcService rpcService = testingRpcServiceResource.getTestingRpcService();
 		final TestingLeaderElectionService dispatcherLeaderElectionService = new TestingLeaderElectionService();
 		final SettableLeaderRetrievalService dispatcherLeaderRetriever = new SettableLeaderRetrievalService();
 
-		final CuratorFramework client = ZooKeeperUtils.startCuratorFramework(configuration);
-		try (final TestingHighAvailabilityServices highAvailabilityServices = new TestingHighAvailabilityServicesBuilder()
+		try (final CuratorFramework client = ZooKeeperUtils.startCuratorFramework(configuration);
+			final TestingHighAvailabilityServices highAvailabilityServices = new TestingHighAvailabilityServicesBuilder()
 				.setRunningJobsRegistry(new ZooKeeperRunningJobsRegistry(client, configuration))
 				.setDispatcherLeaderElectionService(dispatcherLeaderElectionService)
 				.setDispatcherLeaderRetriever(dispatcherLeaderRetriever)
@@ -190,9 +196,6 @@ public class ZooKeeperDispatcherRunnerImplTest extends TestLogger {
 
 				CommonTestUtils.waitUntilCondition(() -> submittedJobGraphStore.getJobIds().isEmpty(), Deadline.fromNow(VERIFICATION_TIMEOUT), 20L);
 			}
-		} finally {
-			rpcService.stopService().join();
-			client.close();
 		}
 
 		// check resource clean up
@@ -214,6 +217,7 @@ public class ZooKeeperDispatcherRunnerImplTest extends TestLogger {
 				partialDispatcherFactoryServices);
 	}
 
+	@Nonnull
 	private ZooKeeperJobGraphStore createZooKeeperJobGraphStore(CuratorFramework client) {
 		try {
 			return ZooKeeperUtils.createJobGraphs(client, configuration);
