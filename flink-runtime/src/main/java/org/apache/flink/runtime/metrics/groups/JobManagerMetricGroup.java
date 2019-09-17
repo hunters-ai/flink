@@ -20,13 +20,17 @@ package org.apache.flink.runtime.metrics.groups;
 
 import org.apache.flink.api.common.JobID;
 import org.apache.flink.metrics.CharacterFilter;
+import org.apache.flink.metrics.Metric;
 import org.apache.flink.runtime.jobgraph.JobGraph;
+import org.apache.flink.runtime.metrics.MetricNames;
 import org.apache.flink.runtime.metrics.MetricRegistry;
 import org.apache.flink.runtime.metrics.dump.QueryScopeInfo;
 import org.apache.flink.runtime.metrics.scope.ScopeFormat;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Special {@link org.apache.flink.metrics.MetricGroup} representing a JobManager.
@@ -35,6 +39,8 @@ import java.util.Map;
  * not contain tasks any more
  */
 public class JobManagerMetricGroup extends ComponentMetricGroup<JobManagerMetricGroup> {
+
+	private static final Set<String> RESETTABLE_METRICS = Collections.singleton(MetricNames.NUM_RUNNING_JOBS);
 
 	private final Map<JobID, JobManagerJobMetricGroup> jobs = new HashMap<>();
 
@@ -52,6 +58,15 @@ public class JobManagerMetricGroup extends ComponentMetricGroup<JobManagerMetric
 	@Override
 	protected QueryScopeInfo.JobManagerQueryScopeInfo createQueryServiceMetricInfo(CharacterFilter filter) {
 		return new QueryScopeInfo.JobManagerQueryScopeInfo();
+	}
+
+	@Override
+	protected void addMetric(String name, Metric metric) {
+		if (RESETTABLE_METRICS.contains(name)) {
+			unregisterMetric(name);
+		}
+
+		super.addMetric(name, metric);
 	}
 
 	// ------------------------------------------------------------------------
