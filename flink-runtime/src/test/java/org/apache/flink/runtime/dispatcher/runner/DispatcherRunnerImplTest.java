@@ -46,12 +46,14 @@ import org.apache.flink.runtime.leaderretrieval.SettableLeaderRetrievalService;
 import org.apache.flink.runtime.metrics.groups.UnregisteredMetricGroups;
 import org.apache.flink.runtime.rpc.RpcService;
 import org.apache.flink.runtime.rpc.TestingRpcService;
+import org.apache.flink.runtime.rpc.TestingRpcServiceResource;
 import org.apache.flink.runtime.testingUtils.TestingUtils;
 import org.apache.flink.runtime.util.TestingFatalErrorHandler;
 import org.apache.flink.util.TestLogger;
 
 import org.junit.After;
 import org.junit.Before;
+import org.junit.ClassRule;
 import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -76,6 +78,9 @@ public class DispatcherRunnerImplTest extends TestLogger {
 
 	private static final Time TESTING_TIMEOUT = Time.seconds(10L);
 
+	@ClassRule
+	public static TestingRpcServiceResource testingRpcServiceResource = new TestingRpcServiceResource();
+
 	private TestingFatalErrorHandler fatalErrorHandler;
 
 	@Before
@@ -95,7 +100,7 @@ public class DispatcherRunnerImplTest extends TestLogger {
 	 */
 	@Test
 	public void testJobRecoveryUnderLeaderChange() throws Exception {
-		final TestingRpcService rpcService = new TestingRpcService();
+		final TestingRpcService rpcService = testingRpcServiceResource.getTestingRpcService();
 		final TestingLeaderElectionService dispatcherLeaderElectionService = new TestingLeaderElectionService();
 		final SettableLeaderRetrievalService dispatcherLeaderRetriever = new SettableLeaderRetrievalService();
 		final Configuration configuration = new Configuration();
@@ -111,7 +116,7 @@ public class DispatcherRunnerImplTest extends TestLogger {
 			final PartialDispatcherFactoryServices dispatcherFactoryServices = new PartialDispatcherFactoryServices(
 				configuration,
 				highAvailabilityServices,
-				() -> new CompletableFuture<>(),
+				CompletableFuture::new,
 				blobServer,
 				new TestingHeartbeatServices(),
 				UnregisteredMetricGroups.createUnregisteredJobManagerMetricGroup(),
@@ -153,8 +158,6 @@ public class DispatcherRunnerImplTest extends TestLogger {
 
 				assertThat(leaderFuture.get(TESTING_TIMEOUT.toMilliseconds(), TimeUnit.MILLISECONDS), is(equalTo(leaderSessionId)));
 			}
-		} finally {
-			rpcService.stopService().join();
 		}
 	}
 
