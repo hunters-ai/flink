@@ -42,7 +42,6 @@ import org.apache.flink.runtime.jobgraph.JobGraph;
 import org.apache.flink.runtime.jobmanager.JobGraphStoreFactory;
 import org.apache.flink.runtime.jobmaster.TestingJobManagerRunner;
 import org.apache.flink.runtime.leaderelection.TestingLeaderElectionService;
-import org.apache.flink.runtime.leaderretrieval.SettableLeaderRetrievalService;
 import org.apache.flink.runtime.metrics.groups.UnregisteredMetricGroups;
 import org.apache.flink.runtime.rpc.RpcService;
 import org.apache.flink.runtime.rpc.TestingRpcService;
@@ -102,7 +101,6 @@ public class DispatcherRunnerImplTest extends TestLogger {
 	public void testJobRecoveryUnderLeaderChange() throws Exception {
 		final TestingRpcService rpcService = testingRpcServiceResource.getTestingRpcService();
 		final TestingLeaderElectionService dispatcherLeaderElectionService = new TestingLeaderElectionService();
-		final SettableLeaderRetrievalService dispatcherLeaderRetriever = new SettableLeaderRetrievalService();
 		final Configuration configuration = new Configuration();
 
 		final JobGraph jobGraph = new JobGraph();
@@ -110,7 +108,6 @@ public class DispatcherRunnerImplTest extends TestLogger {
 		try (final BlobServer blobServer = new BlobServer(configuration, new VoidBlobStore());
 			final TestingHighAvailabilityServices highAvailabilityServices = new TestingHighAvailabilityServicesBuilder()
 			.setDispatcherLeaderElectionService(dispatcherLeaderElectionService)
-			.setDispatcherLeaderRetriever(dispatcherLeaderRetriever)
 			.build()) {
 
 			final PartialDispatcherFactoryServices dispatcherFactoryServices = new PartialDispatcherFactoryServices(
@@ -136,7 +133,7 @@ public class DispatcherRunnerImplTest extends TestLogger {
 					dispatcherRunnerFactory,
 					() -> new SingleJobJobGraphStore(jobGraph))) {
 				// initial run
-				grantLeadership(dispatcherLeaderElectionService, dispatcherLeaderRetriever, dispatcherRunner);
+				grantLeadership(dispatcherLeaderElectionService, dispatcherRunner);
 				final TestingJobManagerRunner testingJobManagerRunner = jobManagerRunnerFactory.takeCreatedJobManagerRunner();
 
 				dispatcherLeaderElectionService.notLeader();
@@ -178,12 +175,9 @@ public class DispatcherRunnerImplTest extends TestLogger {
 
 	private DispatcherGateway grantLeadership(
 			TestingLeaderElectionService dispatcherLeaderElectionService,
-			SettableLeaderRetrievalService dispatcherLeaderRetriever,
 			DispatcherRunner dispatcherRunner) throws InterruptedException, java.util.concurrent.ExecutionException {
 		final UUID leaderSessionId = UUID.randomUUID();
 		dispatcherLeaderElectionService.isLeader(leaderSessionId).get();
-		// TODO: Remove once runner properly works
-		dispatcherLeaderRetriever.notifyListener("foobar", leaderSessionId);
 
 		return dispatcherRunner.getDispatcherGateway().get();
 	}
