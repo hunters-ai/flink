@@ -23,6 +23,7 @@ import org.apache.flink.configuration.Configuration;
 import org.apache.flink.configuration.MetricOptions;
 import org.apache.flink.core.testutils.BlockerSync;
 import org.apache.flink.metrics.CharacterFilter;
+import org.apache.flink.metrics.Gauge;
 import org.apache.flink.metrics.Metric;
 import org.apache.flink.metrics.MetricConfig;
 import org.apache.flink.metrics.MetricGroup;
@@ -35,11 +36,19 @@ import org.apache.flink.runtime.metrics.dump.QueryScopeInfo;
 import org.apache.flink.runtime.metrics.scope.ScopeFormats;
 import org.apache.flink.runtime.metrics.util.TestReporter;
 import org.apache.flink.util.TestLogger;
+import org.apache.flink.util.function.BiConsumerWithException;
 
 import org.junit.Test;
 
 import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.Map;
 
+import static org.hamcrest.MatcherAssert.assertThat;
+import static org.hamcrest.Matchers.contains;
+import static org.hamcrest.Matchers.empty;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
@@ -55,20 +64,51 @@ public class AbstractMetricGroupTest extends TestLogger {
 	public void testGetAllVariables() throws Exception {
 		MetricRegistryImpl registry = new MetricRegistryImpl(MetricRegistryConfiguration.defaultMetricRegistryConfiguration());
 
-		AbstractMetricGroup group = new AbstractMetricGroup<AbstractMetricGroup<?>>(registry, new String[0], null) {
-			@Override
-			protected QueryScopeInfo createQueryServiceMetricInfo(CharacterFilter filter) {
-				return null;
-			}
-
-			@Override
-			protected String getGroupName(CharacterFilter filter) {
-				return "";
-			}
-		};
+		AbstractMetricGroup group = new TestingAbstractMetricGroup(registry);
 		assertTrue(group.getAllVariables().isEmpty());
 
 		registry.shutdown().get();
+	}
+
+	@Test
+	public void testAddMetric() throws Exception {
+		runSimpleMetricTest((abstractMetricGroup, testingReporter) -> {
+			final String metricName = "metricName";
+			final Gauge<Integer> metric = () -> 1;
+
+			abstractMetricGroup.addMetric(metricName, metric);
+			assertThat(testingReporter.getRegisteredMetrics(), contains(metric));
+		});
+	}
+
+	@Test
+	public void testUnregisterMetric() throws Exception {
+		runSimpleMetricTest((abstractMetricGroup, testingMetricReporter) -> {
+			final String metricName = "metricName";
+			final Gauge<Integer> metric = () -> 1;
+
+			abstractMetricGroup.addMetric(metricName, metric);
+			abstractMetricGroup.unregisterMetric(metricName);
+
+			assertThat(testingMetricReporter.getRegisteredMetrics(), empty());
+		});
+	}
+
+	private void runSimpleMetricTest(BiConsumerWithException<AbstractMetricGroup<?>, TestingMetricReporter, Exception> testLogic) throws Exception {
+		TestingMetricReporter testingReporter = new TestingMetricReporter();
+		final MetricRegistryImpl metricRegistry = new MetricRegistryImpl(
+			MetricRegistryConfiguration.defaultMetricRegistryConfiguration(),
+			Collections.singleton(ReporterSetup.forReporter("testingReporter", testingReporter)));
+
+		final AbstractMetricGroup<?> abstractMetricGroup = createAbstractMetricGroup(metricRegistry);
+
+		testLogic.accept(abstractMetricGroup, testingReporter);
+
+		metricRegistry.shutdown().get();
+	}
+
+	private TestingAbstractMetricGroup createAbstractMetricGroup(MetricRegistryImpl metricRegistry) {
+		return new TestingAbstractMetricGroup(metricRegistry);
 	}
 
 	// ========================================================================
@@ -348,6 +388,51 @@ public class AbstractMetricGroupTest extends TestLogger {
 
 		@Override
 		public ScopeFormats getScopeFormats() {
+			return null;
+		}
+	}
+
+	private static class TestingMetricReporter implements MetricReporter {
+		private final Map<String, Metric> registeredMetrics;
+
+		private TestingMetricReporter() {
+			registeredMetrics = new HashMap<>();
+		}
+
+		@Override
+		public void open(MetricConfig config) {}
+
+		@Override
+		public void close() {}
+
+		@Override
+		public void notifyOfAddedMetric(Metric metric, String metricName, MetricGroup group) {
+			registeredMetrics.put(metricName, metric);
+		}
+
+		@Override
+		public void notifyOfRemovedMetric(Metric metric, String metricName, MetricGroup group) {
+			registeredMetrics.remove(metricName);
+		}
+
+		public Collection<Metric> getRegisteredMetrics() {
+			return Collections.unmodifiableCollection(registeredMetrics.values());
+		}
+	}
+
+	private static class TestingAbstractMetricGroup extends AbstractMetricGroup<TestingAbstractMetricGroup> {
+
+		TestingAbstractMetricGroup(MetricRegistry registry) {
+			super(registry, new String[0], null);
+		}
+
+		@Override
+		protected String getGroupName(CharacterFilter filter) {
+			return "";
+		}
+
+		@Override
+		protected QueryScopeInfo createQueryServiceMetricInfo(CharacterFilter filter) {
 			return null;
 		}
 	}

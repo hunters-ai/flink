@@ -408,6 +408,21 @@ public abstract class AbstractMetricGroup<A extends AbstractMetricGroup<?>> impl
 		}
 	}
 
+	/**
+	 * Unregister the metric with the provided name.
+	 *
+	 * @param metricName identifying the metric to unregister
+	 */
+	protected void unregisterMetric(String metricName) {
+		synchronized (this) {
+			final Metric removedMetric = metrics.remove(metricName);
+
+			if (removedMetric != null) {
+				registry.unregister(removedMetric, metricName, this);
+			}
+		}
+	}
+
 	// ------------------------------------------------------------------------
 	//  Groups
 	// ------------------------------------------------------------------------
