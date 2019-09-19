@@ -33,7 +33,9 @@ import javax.annotation.Nonnull;
 public class SessionDispatcherResourceManagerComponentFactory extends DispatcherResourceManagerComponentFactoryImpl {
 
 	public SessionDispatcherResourceManagerComponentFactory(@Nonnull ResourceManagerFactory<?> resourceManagerFactory) {
-		this(new DispatcherRunnerImplNGFactory(SessionDispatcherFactory.INSTANCE), resourceManagerFactory);
+		this(
+			DispatcherRunnerImplNGFactory.createSessionRunner(SessionDispatcherFactory.INSTANCE),
+			resourceManagerFactory);
 	}
 
 	@VisibleForTesting

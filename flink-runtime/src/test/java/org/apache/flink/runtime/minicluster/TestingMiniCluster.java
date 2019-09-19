@@ -136,7 +136,7 @@ public class TestingMiniCluster extends MiniCluster {
 
 	private SessionDispatcherResourceManagerComponentFactory createTestingDispatcherResourceManagerComponentFactory() {
 		return new SessionDispatcherResourceManagerComponentFactory(
-			new DispatcherRunnerImplNGFactory(SessionDispatcherWithUUIDFactory.INSTANCE),
+			DispatcherRunnerImplNGFactory.createSessionRunner(SessionDispatcherWithUUIDFactory.INSTANCE),
 			StandaloneResourceManagerWithUUIDFactory.INSTANCE);
 	}
 }
