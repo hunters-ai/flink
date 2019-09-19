@@ -78,8 +78,7 @@ class TestingDispatcher extends Dispatcher {
 				VoidHistoryServerArchivist.INSTANCE,
 				metricQueryServiceAddress,
 				highAvailabilityServices.getJobGraphStore(),
-				jobManagerRunnerFactory),
-			highAvailabilityServices.getJobGraphStore());
+				jobManagerRunnerFactory));
 
 		this.startFuture = new CompletableFuture<>();
 	}
