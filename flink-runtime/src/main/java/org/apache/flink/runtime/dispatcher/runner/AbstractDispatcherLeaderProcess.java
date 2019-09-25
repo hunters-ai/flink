@@ -29,9 +29,12 @@ import org.apache.flink.runtime.jobmanager.JobGraphWriter;
 import org.apache.flink.runtime.rpc.FatalErrorHandler;
 import org.apache.flink.runtime.webmonitor.RestfulGateway;
 import org.apache.flink.util.AutoCloseableAsync;
+import org.apache.flink.util.Preconditions;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nullable;
 
 import java.util.Collection;
 import java.util.Optional;
@@ -60,6 +63,9 @@ abstract class AbstractDispatcherLeaderProcess implements DispatcherLeaderProces
 
 	private State state;
 
+	@Nullable
+	private DispatcherService dispatcherService;
+
 	AbstractDispatcherLeaderProcess(UUID leaderSessionId, FatalErrorHandler fatalErrorHandler) {
 		this.leaderSessionId = leaderSessionId;
 		this.fatalErrorHandler = fatalErrorHandler;
@@ -70,6 +76,7 @@ abstract class AbstractDispatcherLeaderProcess implements DispatcherLeaderProces
 		this.shutDownFuture = new CompletableFuture<>();
 
 		this.state = State.CREATED;
+		this.dispatcherService = null;
 	}
 
 	@VisibleForTesting
@@ -112,6 +119,10 @@ abstract class AbstractDispatcherLeaderProcess implements DispatcherLeaderProces
 		return shutDownFuture;
 	}
 
+	protected final Optional<DispatcherService> getDispatcherService() {
+		return Optional.ofNullable(dispatcherService);
+	}
+
 	@Override
 	public final CompletableFuture<Void> closeAsync() {
 		runIfStateIsNot(
@@ -132,7 +143,12 @@ abstract class AbstractDispatcherLeaderProcess implements DispatcherLeaderProces
 	protected abstract void onStart();
 
 	protected CompletableFuture<Void> onClose() {
-		return FutureUtils.completedVoidFuture();
+		log.info("Stopping {}.", getClass().getSimpleName());
+		if (dispatcherService != null) {
+			return dispatcherService.closeAsync();
+		} else {
+			return FutureUtils.completedVoidFuture();
+		}
 	}
 
 	protected final void completeDispatcherSetup(DispatcherService dispatcherService) {
@@ -141,9 +157,11 @@ abstract class AbstractDispatcherLeaderProcess implements DispatcherLeaderProces
 			() -> completeDispatcherSetupInternal(dispatcherService));
 	}
 
-	private void completeDispatcherSetupInternal(DispatcherService dispatcherService) {
-		dispatcherGatewayFuture.complete(dispatcherService.getGateway());
-		FutureUtils.forward(dispatcherService.getShutDownFuture(), shutDownFuture);
+	private void completeDispatcherSetupInternal(DispatcherService createdDispatcherService) {
+		Preconditions.checkState(dispatcherService == null, "The DispatcherService can only be set once.");
+		dispatcherService = createdDispatcherService;
+		dispatcherGatewayFuture.complete(createdDispatcherService.getGateway());
+		FutureUtils.forward(createdDispatcherService.getShutDownFuture(), shutDownFuture);
 	}
 
 	protected <V> Optional<V> supplyUnsynchronizedIfRunning(Supplier<V> supplier) {

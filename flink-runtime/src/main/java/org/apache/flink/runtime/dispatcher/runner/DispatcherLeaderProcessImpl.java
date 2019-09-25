@@ -33,8 +33,6 @@ import org.apache.flink.util.FlinkRuntimeException;
 import org.apache.flink.util.Preconditions;
 import org.apache.flink.util.function.FunctionUtils;
 
-import javax.annotation.Nullable;
-
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -56,9 +54,6 @@ public class DispatcherLeaderProcessImpl extends  AbstractDispatcherLeaderProces
 
 	private final Executor ioExecutor;
 
-	@Nullable
-	private DispatcherService dispatcher;
-
 	private CompletableFuture<Void> onGoingRecoveryOperation = FutureUtils.completedVoidFuture();
 
 	private DispatcherLeaderProcessImpl(
@@ -72,8 +67,6 @@ public class DispatcherLeaderProcessImpl extends  AbstractDispatcherLeaderProces
 		this.dispatcherFactory = dispatcherFactory;
 		this.jobGraphStore = jobGraphStore;
 		this.ioExecutor = ioExecutor;
-
-		this.dispatcher = null;
 	}
 
 	@Override
@@ -103,14 +96,13 @@ public class DispatcherLeaderProcessImpl extends  AbstractDispatcherLeaderProces
 	}
 
 	private void createDispatcher(Collection<JobGraph> jobGraphs) {
-		Preconditions.checkState(dispatcher == null);
 
-		dispatcher = dispatcherFactory.create(
+		final DispatcherService dispatcherService = dispatcherFactory.create(
 			DispatcherId.fromUuid(getLeaderSessionId()),
 			jobGraphs,
 			jobGraphStore);
 
-		completeDispatcherSetup(dispatcher);
+		completeDispatcherSetup(dispatcherService);
 	}
 
 	private CompletableFuture<Collection<JobGraph>> recoverJobsAsync() {
@@ -161,14 +153,8 @@ public class DispatcherLeaderProcessImpl extends  AbstractDispatcherLeaderProces
 
 	@Override
 	protected CompletableFuture<Void> onClose() {
-		log.info("Stopping {}.", getClass().getSimpleName());
-		final CompletableFuture<Void> dispatcherTerminationFuture;
-
-		if (dispatcher != null) {
-			dispatcherTerminationFuture = dispatcher.closeAsync();
-		} else {
-			dispatcherTerminationFuture = FutureUtils.completedVoidFuture();
-		}
+		// Here we need to first call super.onClose because we want to stop the DispatcherService first
+		final CompletableFuture<Void> dispatcherTerminationFuture = super.onClose();
 
 		return FutureUtils.runAfterwardsAsync(
 			dispatcherTerminationFuture,
@@ -273,11 +259,8 @@ public class DispatcherLeaderProcessImpl extends  AbstractDispatcherLeaderProces
 	}
 
 	private CompletableFuture<Void> removeJobGraph(JobID jobId) {
-		if (dispatcher == null) {
-			return FutureUtils.completedVoidFuture();
-		} else {
-			return dispatcher.onRemovedJobGraph(jobId);
-		}
+		return getDispatcherService().map(dispatcherService -> dispatcherService.onRemovedJobGraph(jobId))
+			.orElseGet(FutureUtils::completedVoidFuture);
 	}
 
 	// ---------------------------------------------------------------
