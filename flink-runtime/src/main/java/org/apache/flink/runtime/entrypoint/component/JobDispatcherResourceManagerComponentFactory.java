@@ -18,7 +18,7 @@
 
 package org.apache.flink.runtime.entrypoint.component;
 
-import org.apache.flink.runtime.dispatcher.runner.DispatcherRunnerImplNGFactory;
+import org.apache.flink.runtime.dispatcher.runner.DefaultDispatcherRunnerFactory;
 import org.apache.flink.runtime.resourcemanager.ResourceManagerFactory;
 import org.apache.flink.runtime.rest.JobRestEndpointFactory;
 
@@ -31,7 +31,7 @@ public class JobDispatcherResourceManagerComponentFactory extends DispatcherReso
 
 	public JobDispatcherResourceManagerComponentFactory(@Nonnull ResourceManagerFactory<?> resourceManagerFactory, @Nonnull JobGraphRetriever jobGraphRetriever) {
 		super(
-			DispatcherRunnerImplNGFactory.createJobRunner(jobGraphRetriever),
+			DefaultDispatcherRunnerFactory.createJobRunner(jobGraphRetriever),
 			resourceManagerFactory,
 			JobRestEndpointFactory.INSTANCE);
 	}
